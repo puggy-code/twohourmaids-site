@@ -1112,7 +1112,7 @@
     <a class="btn call" href="tel:+17632279124">Call Us Now</a>
     <details class="menu"><summary aria-label="Menu"><span class="ham"></span></summary><nav class="drawer" aria-label="Main (phone)"><img src="/twohourmaids-site/assets/wordmark-230.webp" alt="" width="115" height="89" loading="lazy"><a href="/twohourmaids-site/">Home</a><a href="/twohourmaids-site/book-now" aria-current="page">Book Now</a><a href="/twohourmaids-site/about-us">About Us</a><a href="/twohourmaids-site/services">Services</a><a href="/twohourmaids-site/facilities">Facilities</a><a href="/twohourmaids-site/property-managers">Property Managers</a><a href="/twohourmaids-site/contact">Contact</a><a href="/twohourmaids-site/blog">Blog</a><a href="/twohourmaids-site/service-area">Where We Clean</a><a href="/twohourmaids-site/faq">FAQ</a><a href="/twohourmaids-site/189-cleaning">$189 Cleaning</a><a href="tel:+17632279124">Call (763) 227-9124</a><a href="/twohourmaids-site/gift-cards">Gift Cards</a></nav></details>
   </div>
-  <div class="wrap banner-in"><h1>Book Now</h1><p class="sub">Pick your beds and baths, see your price, then choose a start time. Questions? Call or text <a href="tel:+17632279124" style="color:#fff">(763) 227-9124</a>.</p></div>
+  <div class="wrap banner-in"><h1>Book Now</h1><p class="sub"><strong>Two trained maids, two focused hours.</strong> Pick your beds and baths, see your price, then choose a start time. Questions? Call or text <a href="tel:+17632279124" style="color:#fff">(763) 227-9124</a>.</p></div>
   <svg class="curve" viewBox="0 0 1200 120" preserveAspectRatio="none" aria-hidden="true"><path d="M0,0 C0,62 268,113 600,113 C932,113 1200,62 1200,0 V121 H0 Z" fill="#fff"/></svg>
 </header>
 <main id="main">
@@ -2161,7 +2161,7 @@
   // features on the left; a savings pill, the big price, "per visit", details and the button on the right. Every line is true for the
   // service (no refund or tax claims we do not make).
   var SERVICE_FEATURES = {
-    two_hour: { highlight: "Best value", sub: "2 hours, flat rate", feats: ["Standard checklist", "For well-kept homes"], info: true },
+    two_hour: { highlight: "Best value", sub: "2 maids, about 2 hours", feats: ["Standard checklist", "For well-kept homes"], info: true }, // cus-0003
     works: { highlight: "Every room", sub: "Priced by home size", feats: ["Full checklist, every room", "Add extras"] },
     checklist_clean: { highlight: "Every room, untimed", sub: "Priced by level", feats: ["Our full checklist in every room", "Choose your level and extras", "Free to reschedule"] },
     four_hour: { highlight: "Your list, ranked", sub: "9:00 to 1:30", feats: ["Full clean first", "Then your detailing list", "After your first clean"] } // prc-0344
@@ -5067,7 +5067,9 @@
 
     leadSent = true;
     try {
-      var blob = new Blob([JSON.stringify(payload)], { type: "application/json" });
+      // text/plain: a CORS-safelisted type, so the browser sends it with no preflight (a JSON type made the preflight fail on lead-capture's
+      // "*" origin, since a beacon carries credentials). lead-capture reads the body with req.json() whatever the type.
+      var blob = new Blob([JSON.stringify(payload)], { type: "text/plain;charset=UTF-8" });
       navigator.sendBeacon(CONFIG.LEAD_CAPTURE_URL, blob);
     } catch (e) { /* no-op: best effort only */ }
   }
