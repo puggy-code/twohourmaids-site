@@ -1475,7 +1475,8 @@
     </div>
     <div id="bw-quick-pay" class="bw-quick-pay" hidden>
       <p class="bw-quick-terms">By booking you agree to our <a href="/twohourmaids-site/terms-and-conditions" target="_blank" rel="noopener">terms</a> and the $50 inside-48-hours cancellation fee.</p>
-      <p class="bw-quick-or">Your details and card</p>
+      <div id="bw-ece" class="bw-ece" hidden></div>
+      <p class="bw-quick-or" id="bw-quick-or">Your details and card</p>
     </div>
 
     <form id="bw-form" class="bw-form" novalidate>
@@ -4099,6 +4100,7 @@
     if (tax > 0) rows.push([(tf.fee > 0 ? "Taxes and fees" : "Sales tax") + infoBtn("About taxes and fees", taxInfo), formatPrice(tax)]);
     if (tip > 0) rows.push(["Tip for your team", formatPrice(tip)]);
     var total = price == null ? null : price - nOff - cOff - sOff + tax + tip;
+    orderTotalNow = total == null ? 0 : total; // the quick sheet's wallet shows this (the credit-card total until a card is known)
     var html = rows.map(function (r) { return "<div class='bw-order-row'><span>" + r[0] + "</span><span>" + r[1] + "</span></div>"; }).join("");
     var chargedNow = recurring || paysNowNow();
     var totalInfo = (recurring ? "Charged now, then before each visit. Cancel your plan anytime." : "Charged now. Our cancellation policy applies.") +
@@ -4731,6 +4733,7 @@
     if (!selected) return;
 
     formError.hidden = true;
+    var usedToken = walletToken; walletToken = null; // a wallet's ConfirmationToken is used once, by this submit only
     if (quickMode && !quickFieldsOk()) return;
 
     var zip = document.getElementById("bw-zip").value.trim();
@@ -4818,7 +4821,9 @@
       tip_cents: tipCents(),
       tie_tip_cents: tieTipCents(),
       pay_now: true,
-      card_payment_method_id: cardPm, // the server reads its funding from Stripe and prices the fee by it
+      card_payment_method_id: usedToken ? null : cardPm, // the server reads its funding from Stripe and prices the fee by it
+      // Apple Pay / Google Pay (the quick sheet): the wallet's ConfirmationToken; create-booking prices the fee from its card and confirms.
+      confirmation_token: usedToken || null,
       recurring_consent: selectedFrequency !== "one_time" && document.getElementById("bw-recurring-consent").checked === true,
       recurring_consent_text: selectedFrequency !== "one_time" ? document.getElementById("bw-recurring-consent-text").textContent : null,
       pay_method: bankOffered() ? payMethod : "card",
@@ -4885,7 +4890,21 @@
               ? "That gift card code did not work. Check it, or remove it to continue."
             : data && data.error === "gift_one_time_only"
               ? "Gift cards work on one-time cleans. Please remove the code or choose one-time."
+            : data && data.error === "payment_failed"
+              ? "Your card was not charged" + (data.message ? ": " + data.message : ".") + " Try again, or pay by card below."
               : "Could not start booking. Please try again.");
+        }
+
+        // The wallet path: create-booking already confirmed the payment with the token, after saving the booking. A bank's card check
+        // (requires_action) is finished here; then confirm-booking, as for a card.
+        if (data.confirm_status) {
+          var intentId = String(data.client_secret || "").split("_secret_")[0], isSetupIntent = intentId.indexOf("seti_") === 0;
+          var finishWallet = function () { return finalizeBooking(data.booking_id, isSetupIntent ? null : intentId, null, isSetupIntent ? intentId : null, null); };
+          if (data.confirm_status !== "requires_action") return finishWallet();
+          return stripe.handleNextAction({ clientSecret: data.client_secret }).then(function (r) {
+            if (r.error) throw new Error((r.error.message || "Your bank did not approve the payment.") + " Try again, or pay by card below.");
+            return finishWallet();
+          });
         }
 
         // Distinguish two very different situations that used to be treated identically:
@@ -5228,10 +5247,75 @@
       document.getElementById("bw-quick-fits").addEventListener("click", openTwoHourInfo);
       freqSelect.addEventListener("change", quickRefresh);
       promoInput.addEventListener("input", quickRefresh);
+      try { renderOrder(); } catch (e) { /* the total comes with the next change */ }
+      mountWallets();
     }
     quickRefresh();
   }
-  function quickRefresh() { renderSelectedSummary(); quickChips(); }
+  function quickRefresh() {
+    renderSelectedSummary(); quickChips();
+    if (eceElements && orderTotalNow > 0) { try { eceElements.update({ amount: orderTotalNow }); } catch (e) { /* the wallet keeps the last amount */ } }
+  }
+
+  // Apple Pay / Google Pay on the quick sheet (Stripe's Express Checkout Element). The wallet gives name, email, phone and the address of
+  // the home; an address outside the area is refused inside the wallet, and again before anything is charged. Its ConfirmationToken goes
+  // to create-booking, which prices the fee from the token's card (credit or debit, 0320), saves the booking and confirms; then the same
+  // confirm-booking. The sheet shows the credit-card total; a debit card is charged less, never more. Phones with no wallet see the card form.
+  var walletToken = null, orderTotalNow, eceElements = null;
+  function mountWallets() {
+    var box = document.getElementById("bw-ece"), heading = document.getElementById("bw-quick-or");
+    if (!stripe || !box || !(orderTotalNow > 0)) return;
+    try {
+      eceElements = stripe.elements({ mode: "payment", amount: orderTotalNow, currency: "usd", setupFutureUsage: "off_session", paymentMethodTypes: ["card"] });
+      var ece = eceElements.create("expressCheckout", {
+        emailRequired: true, phoneNumberRequired: true, shippingAddressRequired: true, allowedShippingCountries: ["US"],
+        buttonType: { applePay: "book", googlePay: "book" },
+        paymentMethods: { applePay: "auto", googlePay: "auto", link: "never", amazonPay: "never", paypal: "never", klarna: "never" }
+      });
+      ece.on("ready", function (ev) {
+        var m = ev && ev.availablePaymentMethods, any = !!(m && (m.applePay || m.googlePay));
+        box.hidden = !any;
+        heading.textContent = any ? "Or pay by card" : "Your details and card";
+      });
+      ece.on("click", function (ev) {
+        formError.hidden = true;
+        var needsAgreement = selectedFrequency !== "one_time" && !document.getElementById("bw-recurring-consent").checked;
+        var lapsed = hold && hold.expiresAt <= Date.now();
+        if (needsAgreement || lapsed) {
+          formError.textContent = needsAgreement ? "Please check the box to agree to the charges for your plan first." : "Your hold ran out. Go back and pick a time again.";
+          formError.hidden = false;
+          ev.reject();
+          return;
+        }
+        ev.resolve({ shippingRates: [{ id: "home", displayName: "Address of the home we clean", amount: 0 }] });
+      });
+      ece.on("shippingaddresschange", function (ev) {
+        var zip = String((ev.address && ev.address.postal_code) || "").slice(0, 5);
+        if (CONFIG.SERVICE_AREA_ZIPS.indexOf(zip) === -1) ev.reject(); else ev.resolve();
+      });
+      ece.on("confirm", function (ev) {
+        var ship = ev.shippingAddress || {}, a = ship.address || {}, bd = ev.billingDetails || {};
+        var zip = String(a.postal_code || "").slice(0, 5);
+        if (CONFIG.SERVICE_AREA_ZIPS.indexOf(zip) === -1) { try { ev.paymentFailed({ reason: "invalid_shipping_address" }); } catch (e) {} showOutOfArea(zip); return; }
+        eceElements.submit().then(function (s) {
+          if (s && s.error) throw s.error;
+          return stripe.createConfirmationToken({ elements: eceElements, params: { shipping: { name: ship.name || bd.name || "", address: a } } });
+        }).then(function (r) {
+          if (!r || r.error || !r.confirmationToken) throw (r && r.error) || new Error("The wallet did not finish.");
+          setField("bw-name", ship.name || bd.name); setField("bw-email", bd.email); setField("bw-phone", bd.phone);
+          setField("bw-address", [a.line1, a.line2, a.city].filter(Boolean).join(", ")); setField("bw-zip", zip);
+          walletToken = r.confirmationToken.id;
+          if (form.requestSubmit) form.requestSubmit(); else form.dispatchEvent(new Event("submit", { cancelable: true }));
+        }).catch(function (err) {
+          try { ev.paymentFailed({ reason: "fail" }); } catch (e) { /* the sheet may be closed already */ }
+          formError.textContent = ((err && err.message) || "The wallet payment did not go through.") + " You can pay by card below.";
+          formError.hidden = false;
+        });
+      });
+      ece.mount("#bw-ece");
+    } catch (e) { box.hidden = true; }
+  }
+  function setField(id, v) { var el = document.getElementById(id); if (el && v) el.value = String(v).trim(); }
   // The plan as three chips with their price (the booking page's dial stays on the full flow); they set the same hidden select.
   function quickChips() {
     var box = document.getElementById("bw-quick-chips");
