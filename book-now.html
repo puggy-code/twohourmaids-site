@@ -1082,6 +1082,7 @@
   #bw-root .bw-summary-promo { font-size: 11px; font-weight: 700; color: var(--t-green); background: var(--t-green-soft); border-radius: 999px; padding: 2px 8px; vertical-align: middle; }
   #bw-root .bw-summary-onetime { display: block; font-size: 13px; font-weight: 500; color: #5b6573; text-align: right; white-space: nowrap; }
   #bw-root .bw-wx-first { margin: 6px 0 10px; }
+  #bw-root .bw-time-save { display: block; font-size: 11px; font-weight: 700; color: var(--t-green); line-height: 1.2; }
   #bw-root .bw-info { position: relative; display: inline-block; vertical-align: middle; }
   #bw-root .bw-info-btn { width: 18px; height: 18px; min-height: 0; padding: 0; border-radius: 50%; border: 1.5px solid var(--t-muted); background: #fff;
     color: var(--t-muted); font: italic 700 11px/1 Georgia, serif; cursor: pointer; margin-left: 4px; }
@@ -4517,6 +4518,9 @@
       b.className = "bw-time";
       var open = slotIsAvailable(dStr, slot.key);
       b.textContent = slot.label;
+      // A slow day's saving on each open time too (prc-0091: "Save $19 at 2:40 PM" on the time button); the same text as the day's badge.
+      var save = open ? slowBadgeText(dStr) : "";
+      if (save) { var saveEl = document.createElement("small"); saveEl.className = "bw-time-save"; saveEl.textContent = save; b.appendChild(saveEl); }
       if (open) b.addEventListener("click", function () { pickSlot(dStr, slot); });
       else { b.disabled = true; b.setAttribute("aria-label", slot.label + " booked"); }
       row.appendChild(b);
