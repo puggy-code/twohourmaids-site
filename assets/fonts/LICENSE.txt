@@ -1,0 +1,2 @@
+Poppins (Indian Type Foundry) and Inter (Rasmus Andersson): SIL Open Font License 1.1, https://openfontlicense.org
+Latin subsets of the Google Fonts releases, self-hosted by twohourmaids.com.
