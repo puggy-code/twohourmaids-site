@@ -188,8 +188,8 @@
       var zip = String(input.value || '').replace(/[^0-9]/g, '').slice(0, 5);
       out.textContent = '';
       if (zip.length !== 5) { out.textContent = 'Type a 5-digit ZIP.'; return; }
-      if (area[zip] && window.thmPixel) window.thmPixel.track('FindLocation');
-      if (form.hasAttribute('data-go')) { location.href = bookZip(zip); return; }
+      if (window.thmTrack) window.thmTrack('zip_check', { served: !!area[zip] }); // pixel.js; nothing while its IDs are empty
+      if (form.hasAttribute('data-go')) { setTimeout(function () { location.href = bookZip(zip); }, 150); return; }
       var a = document.createElement('a'); a.href = bookZip(zip);
       if (area[zip]) {
         out.appendChild(document.createTextNode('Yes, we clean in ' + zip + ' (' + area[zip] + '). '));

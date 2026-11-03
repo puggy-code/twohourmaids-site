@@ -25,7 +25,7 @@
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"Which Eden Prairie ZIP codes do you serve?","acceptedAnswer":{"@type":"Answer","text":"55344, 55346, 55347. Type any ZIP in the checker above to be sure."}},{"@type":"Question","name":"Do you also clean in Minnetonka and Chanhassen?","acceptedAnswer":{"@type":"Answer","text":"Yes. Minnetonka (55305, 55345) and Chanhassen (55317) are in our area too."}},{"@type":"Question","name":"Do you clean apartments and condos in Eden Prairie?","acceptedAnswer":{"@type":"Answer","text":"Yes. The Two Hour Clean is made for apartments and smaller homes; larger homes book a Checklist Clean."}},{"@type":"Question","name":"How soon can you come?","acceptedAnswer":{"@type":"Answer","text":"The same day when a team is free, up to an hour before one of the three start times. Otherwise book up to 8 weeks ahead."}},{"@type":"Question","name":"Do I need to be home?","acceptedAnswer":{"@type":"Answer","text":"No. You can leave us a key or a door code. Keys stay on numbered tags, never with your address, and are signed out from a locked box."}}]}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.twohourmaids.com/"},{"@type":"ListItem","position":2,"name":"Where we clean","item":"https://www.twohourmaids.com/service-area"},{"@type":"ListItem","position":3,"name":"Eden Prairie","item":"https://www.twohourmaids.com/house-cleaning-eden-prairie"}]}</script>
 </head>
-<body class="has-mbar">
+<body class="has-mbar" data-view-item="House cleaning in Eden Prairie">
 <a class="skip" href="#main">Skip to content</a>
 <header class="masthead">
   <div class="topbar">Flat-rate cleaning. No surprises.</div>
@@ -123,8 +123,8 @@
       var zip = String(input.value || '').replace(/[^0-9]/g, '').slice(0, 5);
       out.textContent = '';
       if (zip.length !== 5) { out.textContent = 'Type a 5-digit ZIP.'; return; }
-      if (area[zip] && window.thmPixel) window.thmPixel.track('FindLocation');
-      if (form.hasAttribute('data-go')) { location.href = bookZip(zip); return; }
+      if (window.thmTrack) window.thmTrack('zip_check', { served: !!area[zip] }); // pixel.js; nothing while its IDs are empty
+      if (form.hasAttribute('data-go')) { setTimeout(function () { location.href = bookZip(zip); }, 150); return; }
       var a = document.createElement('a'); a.href = bookZip(zip);
       if (area[zip]) {
         out.appendChild(document.createTextNode('Yes, we clean in ' + zip + ' (' + area[zip] + '). '));

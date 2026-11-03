@@ -1771,9 +1771,9 @@
     // Shown on the first panel and on the service list, in the page's own card style.
     PRE_BOOKING_VIDEO_URL: "",
 
-    // Meta Pixel (Jack, 2026-10-21): paste the Pixel ID from Meta Ads Manager to turn on retargeting. Empty = nothing is loaded. A small notice with an opt-out link
-    // shows first; opting out stops the pixel on this browser. Sent: PageView, and Purchase (the amount and currency) when a booking finishes. No names, phones or emails.
-    META_PIXEL_ID: "",
+    // Measurement (Meta Pixel, Google Analytics 4, Google Ads, Microsoft Clarity): the IDs, the notice and "No thanks" live in pixel.js,
+    // loaded next to this page (2026-11-03; it was a Meta Pixel ID here). This page sends begin_checkout, add_payment_info, purchase and
+    // generate_lead through window.thmTrack, and the booking's first and last touch (window.thmAttribution) with create and confirm.
 
     // "Name three" referrals (0303). DISPLAY ONLY: create-booking takes the real discount off from the app's settings
     // (Admin > Referrals > Name three). Keep these equal to those settings so the page shows what is charged.
@@ -4530,7 +4530,7 @@
         btn.disabled = true;
         fetch(CONFIG.AVAILABILITY_URL, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "waitlist", org_slug: CONFIG.ORG_SLUG, date: dStr, name: document.getElementById("bw-wl-name").value, phone: document.getElementById("bw-wl-phone").value }) })
           .then(function (r) { return r.json(); })
-          .then(function (j) { note.textContent = j.ok ? "Check your phone: reply YES to our text to confirm." : (j.error === "bad_phone" ? "Please check the phone number." : "That did not save. Please try again."); btn.disabled = !!j.ok; })
+          .then(function (j) { note.textContent = j.ok ? "Check your phone: reply YES to our text to confirm." : (j.error === "bad_phone" ? "Please check the phone number." : "That did not save. Please try again."); btn.disabled = !!j.ok; if (j.ok) track("generate_lead", { form: "waitlist" }); })
           .catch(function () { note.textContent = "That did not save. Please try again."; btn.disabled = false; });
       });
     }
@@ -4635,6 +4635,7 @@
 
     var pretty = prettyDate(dStr);
     var svc = CONFIG.SERVICES[selectedService];
+    track("begin_checkout", { value: bookingValue(), item: serviceName() });
     var svcLabel = selectedService === "works" ? svc.label + " — " + describeCustomClean() : svc.label;
     var freqObj = findByValue(CONFIG.FREQUENCIES, selectedFrequency) ||
       CONFIG.FREQUENCIES.filter(function (f) { return f.key === selectedFrequency; })[0];
@@ -4787,6 +4788,7 @@
       beds_baths_confirmed: selectedService === "works" ? document.getElementById("bw-accuracy-confirm").checked : null,
       marketing_consent: document.getElementById("bw-marketing-consent").checked === true,
       marketing_consent_version: 3, // TWONEYs wording (0331)
+      attribution: attribution(), // first and last touch, from pixel.js (_shared/attribution.ts keeps only its known fields)
       preferred_language: (document.getElementById("bw-lang") || {}).value === "es" ? "es" : "en", // texts to this customer go out in this language (0101)
       batch_code: batchCode(),
       // Name three (0303): first names only, never a friend's number. The server decides the discount.
@@ -4806,6 +4808,7 @@
       address: document.getElementById("bw-address").value.trim()
     };
 
+    track("add_payment_info", { value: bookingValue(), item: serviceName() });
     fetch(CONFIG.CREATE_BOOKING_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -4920,12 +4923,15 @@
       });
   });
 
+  var lastBookingId = null; // the purchase event's transaction_id (Meta eventID too, so the server-side Conversions API can dedupe)
   function finalizeBooking(bookingId, paymentIntentId, paymentMethodId, setupIntentId, bankSetupIntentId) {
+    lastBookingId = bookingId ? String(bookingId) : null;
     return fetch(CONFIG.CONFIRM_BOOKING_URL, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         booking_id: bookingId,
+        attribution: attribution(),
         payment_intent_id: paymentIntentId,
         // A one-time booking's saved card: confirm-booking checks this SetupIntent with Stripe.
         setup_intent_id: setupIntentId || null,
@@ -4963,7 +4969,7 @@
 
   function showDone(res) {
     bookingCompleted = true;
-    try { if (window.fbq && !pixelOptedOut()) window.fbq("track", "Purchase", { value: Math.round(Number(priceForFrequency(selectedFrequency) || 0)) / 100, currency: (CONFIG.CURRENCY || "usd").toUpperCase() }); } catch (e) {}
+    track("purchase", { value: bookingValue(), transaction_id: lastBookingId, item: serviceName() });
     if (holdTimer) { clearInterval(holdTimer); holdTimer = null; }
     hold = null;
     var holdEl = document.getElementById("bw-hold");
@@ -5116,6 +5122,7 @@
       .then(function () {
         document.getElementById("bw-oa-form").hidden = true;
         document.getElementById("bw-oa-note").hidden = false;
+        track("generate_lead", { form: "out_of_area", served: false });
       })
       .catch(function () {
         oaError.textContent = "Something went wrong — please try again.";
@@ -5146,32 +5153,12 @@
     if (embed) card.querySelector("iframe").src = embed; else card.querySelector("a").href = url;
     host.appendChild(card);
   }
-  // ---------- the Meta Pixel and its notice ----------
-  var PIXEL_KEY = "thm_ads_optout";
-  // The browser privacy signal (Global Privacy Control) counts as "No thanks", the same as web/pixel.js.
-  function pixelOptedOut() { if (navigator.globalPrivacyControl === true) return true; try { return localStorage.getItem(PIXEL_KEY) === "1"; } catch (e) { return false; } }
-  function loadPixel() {
-    var id = (CONFIG.META_PIXEL_ID || "").replace(/[^0-9]/g, "");
-    if (!id || pixelOptedOut() || window.fbq) return;
-    (function (f, b, e, v, n, t, s2) { if (f.fbq) return; n = f.fbq = function () { n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments); }; if (!f._fbq) f._fbq = n; n.push = n; n.loaded = true; n.version = "2.0"; n.queue = []; t = b.createElement(e); t.async = true; t.src = v; s2 = b.getElementsByTagName(e)[0]; s2.parentNode.insertBefore(t, s2); })(window, document, "script", "https://connect.facebook.net/en_US/fbevents.js");
-    window.fbq("set", "autoConfig", false, id); // no automatic button / form events, as in web/pixel.js
-    window.fbq("init", id);
-    window.fbq("track", "PageView");
-  }
-  function showPixelNotice() {
-    var id = (CONFIG.META_PIXEL_ID || "").replace(/[^0-9]/g, "");
-    var seen = false;
-    try { seen = localStorage.getItem("thm_ads_notice") === "1"; } catch (e) {}
-    if (!id || seen || pixelOptedOut()) return;
-    var bar = document.createElement("div");
-    bar.className = "bw-pixel-notice";
-    bar.innerHTML = "<span>We use cookies to show our ads to people who visited. </span><button type='button' data-ok>OK</button> <button type='button' data-out>Opt out</button>";
-    bar.querySelector("[data-ok]").onclick = function () { try { localStorage.setItem("thm_ads_notice", "1"); } catch (e) {} bar.remove(); };
-    bar.querySelector("[data-out]").onclick = function () { try { localStorage.setItem(PIXEL_KEY, "1"); localStorage.setItem("thm_ads_notice", "1"); } catch (e) {} bar.remove(); };
-    document.getElementById("bw-root").appendChild(bar);
-  }
-  loadPixel();
-  showPixelNotice();
+  // ---------- measurement ----------
+  // pixel.js (loaded after this page) runs every tool, the notice and "No thanks"; until it loads, or with every ID empty, these do nothing.
+  function track(name, params) { try { if (window.thmTrack) window.thmTrack(name, params); } catch (e) { /* never break booking */ } }
+  function attribution() { try { return (window.thmAttribution && window.thmAttribution()) || null; } catch (e) { return null; } }
+  function serviceName() { var s = CONFIG.SERVICES[selectedService]; return (s && (s.name || s.label)) || selectedService; }
+  function bookingValue() { return Math.round(Number(priceForFrequency(selectedFrequency) || 0)) / 100; }
   // "Explore your home" (2026-10-22): a link to the room-by-room explorer, and a way back with the home size already filled in (?beds=3&baths=2).
   (function () {
     var holder = document.getElementById("bw-step-services");
@@ -5230,6 +5217,14 @@
       renderGrid = function () { renderGridBase(); dTry(); };
       new MutationObserver(dTry).observe(stepCalendar, { attributes: true, attributeFilter: ["hidden"] });
     }
+    // Once read, the ZIP, date and time leave the address bar, so no measurement tool (pixel.js) ever sees them in a page address.
+    if (q.has("zip") || q.has("date") || q.has("time")) {
+      try {
+        var kept = new URLSearchParams(location.search);
+        ["zip", "date", "time"].forEach(function (k) { kept.delete(k); });
+        history.replaceState(history.state, "", location.pathname + (kept.toString() ? "?" + kept.toString() : "") + location.hash);
+      } catch (e) { /* an old browser keeps the address as it is */ }
+    }
   })();
   // Tie my tip to results (0406): shown only when the business has it switched on.
   var tieCents = 0;
@@ -5271,6 +5266,6 @@
   <div class="fine"><div class="wrap"><span>&copy; 2026 All Rights Reserved | <strong>Two Hour Maids</strong></span><span><a href="/twohourmaids-site/data-privacy-policy">Privacy Policy</a> &amp; <a href="/twohourmaids-site/terms-and-conditions">Terms</a> &middot; <a href="/twohourmaids-site/for-ai-assistants">For AI assistants</a></span></div></div>
 </footer>
 
-
+<script src="/twohourmaids-site/pixel.js" defer></script>
 </body>
 </html>
