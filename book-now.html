@@ -26,7 +26,7 @@
 <link rel="preconnect" href="https://js.stripe.com">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <style>
   .bw-root {
     /* Palette: cool "just-wiped-down" paper instead of stark white or the
@@ -394,7 +394,7 @@
   .bw-opt-note { font-size: 0.8125rem; color: #3E4552; margin-top: 10px; white-space: nowrap; }
   @media (max-width: 380px) { .bw-opt { grid-template-columns: 1fr; } .bw-opt-right { align-items: flex-start; text-align: left; } }
   /* The times step: services are picked on the tiles now, so the old toggle and the "More services" row hide (they stay as the state). */
-  #bw-step-calendar .bw-service-toggle, #bw-step-calendar #bw-more-services { display: none !important; }
+  #bw-step-calendar .bw-service-toggle, #bw-step-calendar #bw-more-services, #bw-step-options .bw-service-toggle, #bw-step-options #bw-more-services { display: none !important; }
   .bw-change-service { margin: 0 0 10px; }
   .bw-works-extras { margin-top: 14px; }
   .bw-optional { font-weight: 400; color: #6B7686; font-size: 0.75rem; margin-left: 4px; }
@@ -1132,6 +1132,270 @@
   #bw-root .bw-whats > summary { display: inline; cursor: pointer; list-style: none; color: #0B4AA8; font-weight: 600; text-decoration: underline; text-underline-offset: 3px; }
   #bw-root .bw-whats > summary::-webkit-details-marker { display: none; }
   #bw-root .bw-whats p { margin: 6px 0 0; }
+
+  /* ================================================================================================================================
+     Reserve-style skin (Jack, 2026-11-04: "make sure that this book widget looks like this flow and it has this exact look"; the Reserve with
+     Google screens, and for the last panel the Discord Nitro "Choose a plan" sheet). Plain white, hairline outlines, Google blue, Roboto,
+     a circular back arrow, outlined dropdowns that open a scrolling list, a three-column time grid, a pin where a time is route-efficient.
+     This layer sits last and wins over the macOS-style layer above; no layout logic changed (the steps are the same elements, restyled).
+     ================================================================================================================================ */
+  #bw-root {
+    --t-ink: #202124; --t-ink-2: #3c4043; --t-muted: #5f6368; --t-line: #dadce0; --t-soft: #f1f3f4;
+    --t-blue: #1a73e8; --t-blue-ink: #1967d2; --t-blue-soft: #e8f0fe; --t-blue-pick: #d2e3fc;
+    --t-green: #188038; --t-green-soft: #e6f4ea; --t-red: #d93025;
+    --t-shadow: 0 1px 2px rgba(60,64,67,.30), 0 2px 6px 2px rgba(60,64,67,.15);
+    --bw-ink: var(--t-ink); --bw-muted: var(--t-muted); --bw-hairline: var(--t-line); --bw-accent: var(--t-blue); --bw-accent-ink: var(--t-blue-ink);
+    --bw-navy: var(--t-ink); --bw-green: var(--t-green); --bw-red: var(--t-red); --bw-paper: var(--t-soft);
+    --mac-font: Roboto, "Google Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+    --bw-pin-url: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 28'%3E%3Cpath d='M12 1.5c-4.7 0-8.5 3.6-8.5 8.2 0 6.2 8.5 16.3 8.5 16.3s8.5-10.1 8.5-16.3C20.5 5.1 16.7 1.5 12 1.5z' fill='%23FFC933' stroke='%237a5a00' stroke-width='2'/%3E%3Ccircle cx='12' cy='9.8' r='3' fill='%23202124'/%3E%3C/svg%3E");
+    background: #fff; max-width: 440px;
+  }
+  #bw-root .bw-progress { display: none !important; }
+  #bw-step-gate, #bw-step-services, #bw-step-options, #bw-step-contact, #bw-step-calendar, #bw-step-form, #bw-step-done, #bw-step-outofarea { background: #fff !important; }
+  #bw-root .bw-card, #bw-root .bw-svcs { background: #fff; border: 1px solid var(--t-line); border-radius: 12px; box-shadow: none; padding: 12px 16px 20px; }
+  #bw-root .bw-svcs { padding: 12px 0 8px; overflow: visible; }
+  #bw-root .bw-gate-card { border: 1px solid var(--t-line); padding: 12px 16px 20px; background: #fff; }
+  #bw-root .bw-gate-photo { display: none; }
+
+  /* the bar: a round back arrow, the title and the business under it */
+  #bw-root .bw-bar { display: grid; grid-template-columns: 44px minmax(0, 1fr) 44px; align-items: center; min-height: 56px; margin: 0 0 8px; padding: 0; border: 0; }
+  #bw-root .bw-bar-plain { grid-template-columns: minmax(0, 1fr); }
+  #bw-root .bw-bar .bw-bar-title, #bw-root .bw-svcs-bar-title { grid-column: 2; text-align: center; min-width: 0; }
+  #bw-root .bw-bar-plain .bw-bar-title { grid-column: 1; }
+  #bw-root .bw-bar-title h3, #bw-root .bw-svcs-title, #bw-root .bw-gate-title { font: 400 1.0625rem/1.3 var(--mac-font); letter-spacing: 0; color: var(--t-ink); margin: 0; }
+  #bw-root .bw-bar-sub, #bw-root .bw-gate-sub { margin: 2px 0 0; color: var(--t-muted); font: 400 .875rem/1.35 var(--mac-font); }
+  #bw-root .bw-bar-back, #bw-root .bw-svcs-back { width: 44px; height: 44px; min-height: 0; padding: 0; border: 0; border-radius: 50%; cursor: pointer; font-size: 0; line-height: 0;
+    background: #e8eaed url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='%23202124' d='M20 11H7.830l5.590-5.590L12 4l-8 8 8 8 1.410-1.410L7.830 13H20z'/%3E%3C/svg%3E") center / 22px no-repeat; }
+  #bw-root .bw-bar-back:hover { background-color: #dfe1e5; }
+  #bw-root .bw-change-service { margin: 0; }
+  #bw-root .bw-svcs-bar { border-bottom: 0; padding: 0 8px; margin: 0 0 4px; }
+  #bw-root .bw-svcs-home { display: none; }
+
+  /* dropdowns: a label, an outlined box, a caret; the list scrolls and the picked row is light blue */
+  #bw-root .bw-dd, #bw-root .bw-sel { position: relative; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+  #bw-root .bw-sel .bw-dd { gap: 0; }
+  #bw-root .bw-dd-label { font: 400 .8125rem/1.2 var(--mac-font); color: var(--t-muted); }
+  #bw-root .bw-native { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0; opacity: 0; overflow: hidden; clip: rect(0 0 0 0); pointer-events: none; }
+  #bw-root .bw-dd-btn { display: flex; align-items: center; justify-content: space-between; gap: 8px; width: 100%; min-height: 52px; padding: 0 8px 0 14px; background: #fff; border: 1px solid var(--t-line);
+    border-radius: 8px; font: 400 1rem var(--mac-font); color: var(--t-ink); cursor: pointer; text-align: left; box-shadow: none; }
+  #bw-root .bw-dd-btn:hover { border-color: #bdc1c6; }
+  #bw-root .bw-dd-btn.is-empty .bw-dd-val { color: var(--t-muted); }
+  #bw-root .bw-dd-btn[aria-expanded="true"] { border: 2px solid var(--t-blue); padding: 0 7px 0 13px; }
+  #bw-root .bw-caret { width: 24px; height: 24px; flex: none; fill: #5f6368; transition: transform .15s; }
+  #bw-root .bw-dd-btn[aria-expanded="true"] .bw-caret { fill: var(--t-blue); transform: rotate(180deg); }
+  #bw-root .bw-dd-list { position: absolute; z-index: 40; left: 0; top: calc(100% + 2px); min-width: 100%; max-height: 18rem; margin: 0; padding: 0; list-style: none; overflow-y: auto;
+    background: #fff; border-radius: 4px; box-shadow: var(--t-shadow); }
+  #bw-root .bw-dd-list[hidden] { display: none !important; }
+  #bw-root .bw-dd-list li { padding: 14px 18px; font: 400 1rem/1.3 var(--mac-font); color: var(--t-ink); cursor: pointer; white-space: nowrap; }
+  #bw-root .bw-dd-list li:hover { background: var(--t-soft); }
+  #bw-root .bw-dd-list li.is-on { background: var(--t-blue-pick); }
+  #bw-root .bw-dd-list li.is-placeholder { color: var(--t-muted); }
+  /* two across like the Reserve screens; one column only when the phone's text is large (cus-0257) */
+  #bw-root .bw-sel-row, #bw-root .bw-gate-row, #bw-root .bw-svcs-size, #bw-root .bw-cf-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 8.5em), 1fr)); gap: 12px; }
+  #bw-root .bw-gate-cond { margin: 0; }
+  #bw-root .bw-gate-form { gap: 16px; }
+
+  /* the first screen */
+  #bw-root .bw-gate-panel { background: #fff; color: var(--t-ink); border-radius: 0; padding: 0; box-shadow: none; margin: 0; }
+  #bw-root .bw-gate-price { background: #fff; border: 1px solid var(--t-line); border-radius: 8px; color: var(--t-ink); }
+  #bw-root .bw-gate-price-row { color: var(--t-ink-2); font-size: .9375rem; }
+  #bw-root .bw-gate-price-row b { color: var(--t-ink); font-weight: 500; font-size: 1.125rem; }
+  #bw-root .bw-gate-price small { color: var(--t-muted); }
+  #bw-root .bw-est { border: 1px solid var(--t-blue-pick); border-radius: 8px; padding: 12px 14px; background: var(--t-blue-soft); }
+  #bw-root .bw-est-head { display: flex; flex-direction: column; gap: 2px; }
+  #bw-root .bw-est-tag { font: 500 .6875rem/1.2 var(--mac-font); letter-spacing: .06em; text-transform: uppercase; color: var(--t-blue-ink); }
+  #bw-root .bw-est-head b { font: 500 1.125rem var(--mac-font); color: var(--t-ink); }
+  #bw-root .bw-est-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 10px 0; }
+  #bw-root .bw-est-grid small { display: block; color: var(--t-muted); font-size: .75rem; }
+  #bw-root .bw-est-grid b { font: 500 1rem var(--mac-font); color: var(--t-ink); }
+  #bw-root .bw-est-why { margin: 0; font-size: .8125rem; color: var(--t-ink-2); line-height: 1.45; }
+  #bw-root .bw-intake { margin: 0; }
+  #bw-root .bw-intake-label { color: var(--t-ink); font: 500 1.0625rem var(--mac-font); margin-bottom: 10px; }
+  #bw-root .bw-intake-label span { color: var(--t-muted); font-weight: 400; opacity: 1; }
+  #bw-root .bw-intake textarea { border: 1px solid var(--t-line); border-radius: 8px; padding: 14px; font: 400 1rem/1.4 var(--mac-font); min-height: 6.5rem; color: var(--t-ink); background: #fff; }
+  #bw-root .bw-intake textarea::placeholder { color: var(--t-muted); }
+  #bw-root .bw-intake textarea:focus { outline: none; border: 2px solid var(--t-blue); padding: 13px; }
+
+  /* the one primary button: full width, blue, grey when it cannot be pressed yet */
+  #bw-root .bw-primary, #bw-root .bw-gate-submit { display: block; width: 100%; min-height: 48px; padding: 0 24px; border: 0; border-radius: 4px; background: var(--t-blue); color: #fff; font: 500 1rem var(--mac-font);
+    letter-spacing: .01em; text-transform: none; box-shadow: none; cursor: pointer; }
+  #bw-root .bw-primary:hover, #bw-root .bw-gate-submit:hover { background: var(--t-blue-ink); }
+  #bw-root .bw-primary:disabled { background: #e8eaed; color: #80868b; cursor: default; }
+  #bw-root .bw-primary-auto { display: inline-block; width: auto; min-width: 9rem; }
+  #bw-root #bw-step-options .bw-divider { display: none; }
+  #bw-root.bw-quick #bw-rules { display: none; }
+  #bw-root .bw-actionbar { margin: 20px 0 0; padding: 14px 0 0; border-top: 1px solid var(--t-line); }
+  #bw-root .bw-actionbar-right { text-align: right; }
+  #bw-root .bw-actionbar-center { text-align: center; }
+
+  /* choose your clean */
+  #bw-root .bw-svcs-size { padding: 8px 16px 14px; border: 0; background: #fff; }
+  #bw-root #bw-svcs-list { padding: 4px 16px 8px !important; display: grid !important; gap: 12px !important; }
+  #bw-root .bw-opt { background: #fff !important; -webkit-backdrop-filter: none; backdrop-filter: none; border: 1px solid var(--t-line) !important; box-shadow: none !important; border-radius: 12px !important; padding: 16px !important; }
+  #bw-root .bw-opt-name { font: 500 1.0625rem var(--mac-font) !important; letter-spacing: 0; }
+  #bw-root .bw-opt-hl { color: var(--t-green); font-weight: 500; }
+  #bw-root .bw-opt-price { font: 500 1.75rem var(--mac-font) !important; letter-spacing: 0; }
+  #bw-root .bw-opt-go { background: var(--t-blue); border-radius: 4px !important; box-shadow: none !important; font: 500 1rem var(--mac-font) !important; }
+  #bw-root .bw-opt-pill { background: var(--t-green-soft) !important; color: var(--t-green) !important; }
+  #bw-root .bw-opt-tag { display: inline-block; margin-bottom: 8px; padding: 3px 10px; border-radius: 999px; background: var(--t-blue-soft); color: var(--t-blue-ink); font: 500 .75rem var(--mac-font); }
+  #bw-root .bw-opt-recur, #bw-root .bw-opt-recur b, #bw-root .bw-opt-recur-text { color: var(--t-green) !important; }
+  #bw-root .bw-opt-arrow path { stroke: var(--t-green) !important; }
+
+  /* your visit (the choices before the contact info): lifted tiles become plain outlined ones */
+  #bw-root .bw-wx-scene, #bw-root .bw-hc-card, #bw-root .bw-2h-prio textarea, #bw-root .bw-2h-prio-found, #bw-root .bw-wx-pop, #bw-root .bw-freq-field {
+    background: #fff !important; -webkit-backdrop-filter: none; backdrop-filter: none; border: 1px solid var(--t-line) !important; box-shadow: none !important; }
+  #bw-root .bw-2h-prio textarea { border-radius: 8px; text-align: left; }
+  #bw-root .bw-freq-field { border-radius: 12px !important; }
+  #bw-root .bw-hc-card.is-on { box-shadow: 0 0 0 2px var(--t-blue) !important; }
+  #bw-root .bw-note { background: var(--t-blue-soft); color: var(--t-blue-ink); border-radius: 8px; }
+  #bw-root .bw-warning { background: var(--t-soft); border-left-color: var(--t-blue); border-radius: 8px; }
+
+  /* contact info */
+  #bw-root .bw-sec { margin: 8px 0 0; font: 400 1.0625rem var(--mac-font); color: var(--t-ink); }
+  #bw-root .bw-cform { display: grid; gap: 16px; }
+  #bw-root .bw-cf { display: flex; flex-direction: column; gap: 6px; min-width: 0; font: 400 .8125rem/1.2 var(--mac-font); color: var(--t-muted); }
+  #bw-root .bw-cf input { min-height: 52px; width: 100%; padding: 0 14px; border: 1px solid var(--t-line); border-radius: 8px; background: #fff; font: 400 1rem var(--mac-font); color: var(--t-ink); }
+  #bw-root .bw-cf input:focus { outline: none; border: 2px solid var(--t-blue); padding: 0 13px; }
+  #bw-root .bw-tel { display: flex; align-items: stretch; border: 1px solid var(--t-line); border-radius: 8px; overflow: hidden; background: #fff; }
+  #bw-root .bw-tel:focus-within { border: 2px solid var(--t-blue); }
+  #bw-root .bw-tel input { border: 0; border-radius: 0; flex: 1; min-width: 0; }
+  #bw-root .bw-tel input:focus { border: 0; padding: 0 14px; }
+  #bw-root .bw-flag { display: flex; align-items: center; gap: 6px; padding: 0 10px 0 14px; }
+  #bw-root .bw-flag svg { width: 28px; height: 20px; border: 1px solid #e8eaed; }
+  #bw-root .bw-flag i { font: 400 .875rem var(--mac-font); font-style: normal; color: var(--t-ink-2); }
+  #bw-root .bw-fine { margin: 0; font-size: .8125rem; line-height: 1.5; color: var(--t-muted); }
+
+  /* pick a time */
+  #bw-root #bw-calendar-block { position: relative; }
+  #bw-root .bw-pop { position: absolute; z-index: 35; left: 0; right: 0; margin-top: 4px; padding: 12px 8px 10px; background: #fff; border-radius: 8px; box-shadow: var(--t-shadow); }
+  #bw-root .bw-pop[hidden] { display: none !important; }
+  #bw-root .bw-header { margin-bottom: 8px; }
+  #bw-root .bw-month-label { font: 500 1rem var(--mac-font); color: var(--t-ink); }
+  #bw-root .bw-navbtn { width: 36px; height: 36px; border: 0; border-radius: 50%; background: transparent; color: var(--t-muted); font-size: 1.5rem; }
+  #bw-root .bw-navbtn:hover { background: var(--t-soft); }
+  #bw-root .bw-weekdays { font: 500 .8125rem var(--mac-font); color: var(--t-ink); margin-bottom: 4px; }
+  #bw-root .bw-grid { gap: 0; }
+  #bw-root .bw-cell { min-height: 48px; border-radius: 8px; padding: 2px 0; }
+  #bw-root .bw-daynum { width: 28px; height: 28px; margin: 0 0 3px; display: flex; align-items: center; justify-content: center; border-radius: 50%; font: 400 .9375rem var(--mac-font); color: var(--t-ink); }
+  #bw-root .bw-cell-disabled .bw-daynum { color: #80868b; }
+  #bw-root .bw-cell-disabled { opacity: 1; }
+  #bw-root .bw-cell-on { background: transparent; box-shadow: none; }
+  #bw-root .bw-cell-on .bw-daynum { background: var(--t-blue); color: #fff; }
+  #bw-root .bw-dots { align-items: center; gap: 3px; min-height: 12px; }
+  #bw-root .bw-dot { width: 8px; height: 8px; }
+  #bw-root .bw-dot-green { background: var(--t-blue); }
+  #bw-root .bw-dot-red { background: #bdc1c6; }
+  #bw-root .bw-dot-route { width: 11px; height: 13px; border-radius: 0; background: var(--bw-pin-url) center / contain no-repeat; }
+  #bw-root .bw-legend { flex-wrap: wrap; gap: 6px 14px; margin: 8px 6px 0; font: 400 .75rem var(--mac-font); color: var(--t-muted); }
+  #bw-root .bw-legend .bw-dot { width: 8px; height: 8px; }
+  #bw-root .bw-route-mark { display: inline-block; width: 10px; height: 12px; background: var(--bw-pin-url) center / contain no-repeat; }
+  #bw-root .bw-legend-route[hidden] { display: none !important; }
+  #bw-root .bw-timegrid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--t-line); }
+  #bw-root .bw-time { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 60px; padding: 6px 4px; border: 1px solid var(--t-line); border-radius: 4px;
+    background: #fff; color: var(--t-blue); font: 500 1rem var(--mac-font); cursor: pointer; text-decoration: none; }
+  #bw-root .bw-time:hover { background: var(--t-blue-soft); border-color: var(--t-blue-pick); }
+  #bw-root .bw-time.is-picked { background: var(--t-blue-soft); border-color: var(--t-blue-pick); box-shadow: 0 0 0 1px var(--t-blue) inset; }
+  #bw-root .bw-time:disabled { background: #e8eaed; border-color: #e8eaed; color: #80868b; text-decoration: none; cursor: not-allowed; }
+  #bw-root .bw-time.is-route { border-color: #f1d27a; }
+  #bw-root .bw-t-sub { font: 500 .6875rem/1.2 var(--mac-font); color: var(--t-muted); }
+  #bw-root .bw-t-route { display: inline-flex; align-items: center; gap: 3px; color: #6b4e00; font-weight: 700; }
+  #bw-root .bw-time:disabled .bw-t-sub { color: #80868b; }
+  #bw-root .bw-time-save { color: var(--t-green); font-weight: 700; }
+  #bw-root .bw-pin { width: 12px; height: 14px; flex: none; fill: #FFC933; stroke: #7a5a00; stroke-width: 1.6; }
+  #bw-root .bw-pin circle { fill: #202124; stroke: none; }
+  #bw-root .bw-timegrid .bw-waitlist { grid-column: 1 / -1; }
+  #bw-root .bw-times-note { margin: 12px 2px 0; font: 400 .8125rem/1.5 var(--mac-font); color: var(--t-muted); }
+  #bw-root .bw-times-note[hidden] { display: none !important; }
+  #bw-root #bw-best { margin-top: 16px; }
+  #bw-root .bw-best-title { font: 500 .9375rem var(--mac-font); margin: 0 0 8px; color: var(--t-ink); }
+  #bw-root .bw-best-list { display: flex; flex-wrap: wrap; gap: 8px; }
+  #bw-root .bw-best-list .bw-navbtn { border: 1px solid var(--t-line); border-radius: 4px; color: var(--t-blue); font: 500 .875rem var(--mac-font); }
+
+  /* your reservation */
+  #bw-root .bw-hold { background: var(--t-blue-soft); color: var(--t-blue-ink); border-radius: 8px; }
+  #bw-root .bw-summary { border: 0; margin: 0; padding: 0 0 8px; }
+  #bw-root .bw-sum-row { display: flex; gap: 16px; align-items: flex-start; padding: 14px 0; }
+  #bw-root .bw-sum-ico { flex: none; width: 24px; height: 24px; margin-top: 2px; color: var(--t-muted); }
+  #bw-root .bw-sum-ico svg { width: 24px; height: 24px; fill: currentColor; }
+  #bw-root .bw-sum-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+  #bw-root .bw-sum-text b { font: 400 1.0625rem/1.3 var(--mac-font); color: var(--t-ink); }
+  #bw-root .bw-sum-text span { font: 400 .9375rem/1.4 var(--mac-font); color: var(--t-muted); }
+  #bw-root .bw-sum-route { display: flex !important; align-items: center; gap: 5px; color: #6b4e00 !important; font-weight: 500; }
+  #bw-root .bw-sum-row .bw-price { font: 500 1.125rem var(--mac-font); margin: 0; text-align: right; color: var(--t-ink); }
+  #bw-root .bw-triage { background: var(--t-soft); border: 0; box-shadow: none; border-radius: 8px; margin: 4px 0 16px; }
+  #bw-root .bw-sec-block { margin: 0 -16px; padding: 16px; border-top: 8px solid var(--t-soft); }
+  #bw-root .bw-sec-block[hidden] { display: none !important; }
+  #bw-root .bw-rowbtn { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; margin-top: 12px; padding: 14px 16px; border: 1px solid var(--t-line); border-radius: 8px; background: #fff; text-align: left; cursor: pointer; font: 400 1rem var(--mac-font); color: var(--t-ink); }
+  #bw-root .bw-rowbtn:hover { background: var(--t-soft); }
+  #bw-root .bw-rowbtn svg { width: 22px; height: 22px; flex: none; fill: var(--t-ink); }
+  #bw-root #bw-contact-lines { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  #bw-root #bw-contact-lines b { font-weight: 500; }
+  #bw-root #bw-contact-lines span { color: var(--t-muted); font-size: .875rem; overflow-wrap: anywhere; }
+  #bw-root .bw-rule { display: flex; gap: 14px; padding: 10px 0 2px; }
+  #bw-root .bw-rule-ico { flex: none; width: 28px; height: 28px; }
+  #bw-root .bw-rule-ico svg { width: 28px; height: 28px; fill: var(--t-muted); }
+  #bw-root .bw-rule b { font: 500 1rem var(--mac-font); color: var(--t-ink); }
+  #bw-root .bw-rule p { margin: 2px 0 0; font: 400 .875rem/1.45 var(--mac-font); color: var(--t-muted); }
+  #bw-root.bw-has-contact #bw-form .bw-field:has(#bw-name), #bw-root.bw-has-contact #bw-form .bw-field:has(#bw-email), #bw-root.bw-has-contact #bw-form .bw-field:has(#bw-phone) { display: none; }
+  #bw-root .bw-field input:not([type="checkbox"]):not([type="radio"]), #bw-root .bw-field textarea, #bw-root .bw-card-element { border-radius: 8px; border-color: var(--t-line); }
+  #bw-root .bw-field input:focus, #bw-root .bw-field textarea:focus { border: 2px solid var(--t-blue); box-shadow: none; }
+  #bw-root .bw-order-lines, #bw-root .bw-recurring-consent, #bw-root .bw-rewards-optin { background: #fff; border-color: var(--t-line); border-radius: 8px; }
+  #bw-root .bw-tip-btn { border-radius: 4px; border-width: 1px; }
+  #bw-root .bw-tip-btn.is-on { background: var(--t-blue-soft); color: var(--t-blue-ink); border-color: var(--t-blue); }
+
+  /* the bottom sheet: the half-hour offer, CHOOSE A PLAN, the green button, the fine print (the Nitro sheet) */
+  #bw-root #bw-half-wrap { display: none !important; }
+  #bw-root.bw-quick #bw-upsell, #bw-root.bw-quick #bw-sheet-plans { display: none !important; }
+  #bw-root .bw-sheet { margin: 20px -16px -20px; padding: 20px 16px 22px; background: #f2f3f5; border-radius: 22px 22px 12px 12px; }
+  #bw-root .bw-sheet-head { margin: 0 0 8px; font: 500 .9375rem var(--mac-font); letter-spacing: .02em; text-transform: uppercase; color: var(--t-ink-2); }
+  #bw-root .bw-plan-rows { display: grid; gap: 2px; }
+  #bw-root .bw-plan { display: flex; align-items: center; gap: 14px; width: 100%; min-height: 56px; padding: 6px 0; border: 0; background: transparent; text-align: left; cursor: pointer; font: 400 1.0625rem var(--mac-font); color: var(--t-ink); }
+  #bw-root .bw-radio { position: relative; flex: none; width: 24px; height: 24px; border: 2px solid #4e5058; border-radius: 50%; background: transparent; }
+  #bw-root .bw-plan.is-on .bw-radio { border-color: #000; }
+  #bw-root .bw-plan.is-on .bw-radio::after { content: ""; position: absolute; inset: 3px; border-radius: 50%; background: var(--t-blue); }
+  #bw-root .bw-plan-name { flex: 1; min-width: 0; }
+  #bw-root .bw-plan-save { flex: none; padding: 6px 12px; border-radius: 999px; background: #248046; color: #fff; font: 700 .8125rem var(--mac-font); text-transform: uppercase; letter-spacing: .01em; }
+  #bw-root .bw-plan-price { flex: none; font: 500 1.0625rem var(--mac-font); text-align: right; }
+  #bw-root .bw-plan-price small { font-weight: 400; color: var(--t-muted); font-size: .75rem; }
+  #bw-root .bw-upsell { display: grid; gap: 8px; margin: 0 0 18px; padding: 14px; background: #fff; border: 1px solid var(--t-line); border-radius: 12px; }
+  #bw-root .bw-upsell[hidden] { display: none !important; }
+  #bw-root .bw-upsell.is-rec { border-color: #248046; box-shadow: 0 0 0 1px #248046 inset; }
+  #bw-root .bw-upsell-tag { justify-self: start; padding: 4px 10px; border-radius: 999px; background: var(--t-green-soft); color: #137333; font: 700 .75rem var(--mac-font); }
+  #bw-root .bw-upsell-tag[hidden] { display: none !important; }
+  #bw-root .bw-upsell-row { display: flex; align-items: center; gap: 12px; cursor: pointer; }
+  #bw-root .bw-upsell-row input { flex: none; width: 22px; height: 22px; accent-color: #248046; }
+  #bw-root .bw-upsell-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+  #bw-root .bw-upsell-text b { font: 500 1.0625rem var(--mac-font); color: var(--t-ink); }
+  #bw-root .bw-upsell-text small { font: 400 .8125rem/1.4 var(--mac-font); color: var(--t-muted); }
+  #bw-root .bw-upsell-row em { flex: none; font: 700 1.0625rem var(--mac-font); font-style: normal; color: var(--t-ink); }
+  #bw-root .bw-sheet .bw-submit { display: block; width: 100%; min-height: 54px; margin: 16px 0 0; border: 0; border-radius: 999px; background: #248046; color: #fff; font: 500 1.0625rem var(--mac-font); box-shadow: none; }
+  #bw-root .bw-sheet .bw-submit:hover { background: #1f6e3c; box-shadow: none; }
+  #bw-root .bw-sheet .bw-submit:disabled { opacity: .6; }
+  #bw-root .bw-sheet-fine { margin: 16px 0 0; font: 400 .8125rem/1.55 var(--mac-font); color: var(--t-ink-2); }
+  #bw-root .bw-sheet-fine a { color: #0b6bcb; text-decoration: none; }
+  #bw-root .bw-sheet .bw-error { margin: 10px 0 0; }
+
+  /* booking confirmed */
+  #bw-root .bw-done-icon { width: 76px; height: 76px; margin: 28px auto 16px; color: #dadce0; }
+  #bw-root .bw-done-ring { stroke: #dadce0; stroke-width: 1.5; }
+  #bw-root .bw-done-check { stroke: url(#bwDoneGrad); }
+  #bw-root .bw-done-title { margin: 0 0 8px; text-align: center; font: 400 1.5rem/1.25 var(--mac-font); letter-spacing: 0; color: var(--t-ink); }
+  #bw-root .bw-done-email { margin: 0 0 20px; text-align: center; font: 400 1rem/1.4 var(--mac-font); color: var(--t-muted); }
+  #bw-root .bw-done-email b { display: block; margin-top: 2px; font-weight: 400; color: var(--t-ink); overflow-wrap: anywhere; }
+  #bw-root .bw-done-card { display: flex; gap: 18px; padding: 18px 0; border-top: 1px solid var(--t-line); border-bottom: 1px solid var(--t-line); }
+  #bw-root .bw-done-date { flex: none; display: flex; flex-direction: column; align-items: center; min-width: 3rem; }
+  #bw-root .bw-done-date b { font: 400 2rem/1 var(--mac-font); color: var(--t-ink); }
+  #bw-root .bw-done-date span { margin-top: 4px; font: 500 .8125rem var(--mac-font); letter-spacing: .06em; color: var(--t-muted); }
+  #bw-root .bw-done-info { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+  #bw-root .bw-done-info b { font: 400 1.0625rem/1.3 var(--mac-font); color: var(--t-ink); }
+  #bw-root .bw-done-info span { font: 400 1rem/1.35 var(--mac-font); color: var(--t-muted); }
+  #bw-root .bw-done-actions { display: flex; justify-content: center; gap: 44px; margin: 24px 0 8px; }
+  #bw-root .bw-circ { display: flex; flex-direction: column; align-items: center; gap: 8px; text-decoration: none; color: var(--t-blue); font: 500 .8125rem var(--mac-font); letter-spacing: .08em; text-transform: uppercase; }
+  #bw-root .bw-circ i { width: 56px; height: 56px; display: grid; place-items: center; border: 1px solid var(--t-line); border-radius: 50%; }
+  #bw-root .bw-circ svg { width: 24px; height: 24px; fill: var(--t-blue); }
+  #bw-root .bw-done-detail { margin: 16px 0 0; font-size: .8125rem; color: var(--t-muted); }
+  #bw-root .bw-ready-cta a { border-radius: 4px; background: var(--t-blue); }
+  @media (prefers-reduced-motion: reduce) { #bw-root .bw-caret { transition: none; } }
 </style>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Service","name":"House cleaning","serviceType":"House cleaning","description":"Book a Two Hour Clean or a Checklist Clean online.","provider":{"@id":"https://www.twohourmaids.com/#business"},"areaServed":[{"@type":"City","name":"Apple Valley, MN"},{"@type":"City","name":"Blaine, MN"},{"@type":"City","name":"Bloomington, MN"},{"@type":"City","name":"Brooklyn Center, MN"},{"@type":"City","name":"Brooklyn Park, MN"},{"@type":"City","name":"Champlin, MN"},{"@type":"City","name":"Chanhassen, MN"},{"@type":"City","name":"Chaska, MN"},{"@type":"City","name":"Columbia Heights, MN"},{"@type":"City","name":"Coon Rapids, MN"},{"@type":"City","name":"Crystal, MN"},{"@type":"City","name":"Dayton, MN"},{"@type":"City","name":"Eagan, MN"},{"@type":"City","name":"Eden Prairie, MN"},{"@type":"City","name":"Edina, MN"},{"@type":"City","name":"Excelsior, MN"},{"@type":"City","name":"Fridley, MN"},{"@type":"City","name":"Golden Valley, MN"},{"@type":"City","name":"Hanover, MN"},{"@type":"City","name":"Hopkins, MN"},{"@type":"City","name":"Long Lake, MN"},{"@type":"City","name":"Loretto, MN"},{"@type":"City","name":"Maple Grove, MN"},{"@type":"City","name":"Maple Plain, MN"},{"@type":"City","name":"Maplewood, MN"},{"@type":"City","name":"Medina, MN"},{"@type":"City","name":"Mendota Heights, MN"},{"@type":"City","name":"Minneapolis, MN"},{"@type":"City","name":"Minnetonka, MN"},{"@type":"City","name":"Mound, MN"},{"@type":"City","name":"Navarre, MN"},{"@type":"City","name":"New Brighton, MN"},{"@type":"City","name":"Oakdale, MN"},{"@type":"City","name":"Plymouth, MN"},{"@type":"City","name":"Richfield, MN"},{"@type":"City","name":"Robbinsdale, MN"},{"@type":"City","name":"Rogers, MN"},{"@type":"City","name":"Roseville, MN"},{"@type":"City","name":"Savage, MN"},{"@type":"City","name":"Shakopee, MN"},{"@type":"City","name":"Shoreview, MN"},{"@type":"City","name":"St Louis Park, MN"},{"@type":"City","name":"St Paul, MN"},{"@type":"City","name":"Vadnais Heights, MN"},{"@type":"City","name":"Wayzata, MN"},{"@type":"City","name":"West St Paul, MN"},{"@type":"City","name":"White Bear Lake, MN"}],"offers":[{"@type":"AggregateOffer","lowPrice":"189.00","highPrice":"222.00","priceCurrency":"USD","url":"https://www.twohourmaids.com/book-now"}]}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.twohourmaids.com/"},{"@type":"ListItem","position":2,"name":"Book now","item":"https://www.twohourmaids.com/book-now"}]}</script>
@@ -1160,8 +1424,13 @@
       <div class="bw-gate-scrim"></div>
     </div>
     <div class="bw-gate-panel">
-      <h3 class="bw-gate-title">Book Now</h3>
-      <p class="bw-gate-sub">Your price and open times in seconds.</p>
+      
+      <div class="bw-bar bw-bar-plain">
+        <div class="bw-bar-title">
+          <h3 class="bw-gate-title">Book Now</h3>
+          <p class="bw-gate-sub">Two Hour Maids &middot; House cleaning</p>
+        </div>
+      </div>
 
       <form id="bw-gate-form" class="bw-gate-form" novalidate>
         <div class="bw-gate-row">
@@ -1173,6 +1442,25 @@
             <span>Bathrooms</span>
             <select id="bw-gate-bathrooms"></select>
           </label>
+        </div>
+        
+        <label class="bw-gate-field bw-gate-cond">
+          <span>How is your home right now?</span>
+          <select id="bw-gate-condition">
+            <option value="kept">Kept up</option>
+            <option value="while">It has been a while</option>
+            <option value="dirty">Really dirty</option>
+          </select>
+        </label>
+        
+        <div id="bw-est" class="bw-est" aria-live="polite">
+          <div class="bw-est-head"><span class="bw-est-tag">Suggested for your home</span><b id="bw-est-name">Two Hour Clean</b></div>
+          <div class="bw-est-grid">
+            <div><small>Cleaning time</small><b id="bw-est-time">2 hr</b></div>
+            <div><small>Crew</small><b id="bw-est-crew">2 maids</b></div>
+            <div><small>Price</small><b id="bw-est-price">$222</b></div>
+          </div>
+          <p id="bw-est-why" class="bw-est-why"></p>
         </div>
         <div class="bw-gate-price" hidden>
           <div class="bw-gate-price-row" id="bw-gate-row-2h"><span>Two Hour Clean</span><b id="bw-gate-price-2h"></b></div>
@@ -1187,16 +1475,16 @@
           <div id="bw-intake-result" class="bw-intake-result" aria-live="polite" hidden></div>
         </div>
         <p id="bw-gate-error" class="bw-error" hidden></p>
-        <button type="submit" class="bw-gate-submit">See prices and times</button>
+        <button type="submit" class="bw-gate-submit">Continue</button>
       </form>
     </div>
   </div>
 
   
   <div id="bw-step-services" class="bw-svcs" hidden>
-    <div class="bw-svcs-bar">
-      <button type="button" id="bw-svcs-back" class="bw-svcs-back" aria-label="Back">&#8249;</button>
-      <div class="bw-svcs-bar-title"><h3 class="bw-svcs-title">Choose your clean</h3><div id="bw-svcs-home" class="bw-svcs-home"></div></div>
+    <div class="bw-svcs-bar bw-bar">
+      <button type="button" id="bw-svcs-back" class="bw-svcs-back bw-bar-back" aria-label="Back"></button>
+      <div class="bw-svcs-bar-title bw-bar-title"><h3 class="bw-svcs-title">Choose your clean</h3><p class="bw-bar-sub">Two Hour Maids</p><div id="bw-svcs-home" class="bw-svcs-home"></div></div>
     </div>
     <div class="bw-svcs-size">
       <label class="bw-svcs-size-field"><span>Bedrooms</span><select id="bw-svcs-bed"></select></label>
@@ -1235,8 +1523,11 @@
   </div>
 
   
-  <div id="bw-step-calendar" class="bw-card" hidden>
-    <button type="button" id="bw-change-service" class="bw-back bw-change-service">&#8249; Services</button>
+  <div id="bw-step-options" class="bw-card" hidden>
+    <div class="bw-bar">
+      <button type="button" id="bw-change-service" class="bw-bar-back bw-back bw-change-service" aria-label="Back to services"></button>
+      <div class="bw-bar-title"><h3>Your visit</h3><p class="bw-bar-sub" id="bw-options-sub">Two Hour Maids</p></div>
+    </div>
     <p id="bw-fv-switched" class="bw-note bw-detailing-nudge" role="status" hidden></p>
 
     <div class="bw-service-toggle" role="group" aria-label="Choose a service">
@@ -1458,36 +1749,94 @@
 
     <div class="bw-divider" id="bw-divider-1"></div>
 
+    <div class="bw-actionbar"><button type="button" id="bw-options-go" class="bw-primary">Continue</button></div>
+  </div>
+
+  
+  <div id="bw-step-contact" class="bw-card" hidden>
+    <div class="bw-bar">
+      <button type="button" id="bw-contact-back" class="bw-bar-back" aria-label="Back"></button>
+      <div class="bw-bar-title"><h3>Contact info</h3><p class="bw-bar-sub">Two Hour Maids</p></div>
+    </div>
+    <form id="bw-contact-form" class="bw-cform" novalidate>
+      <h4 class="bw-sec">Contact Info</h4>
+      <div class="bw-cf-row">
+        <label class="bw-cf"><span>First name</span><input type="text" id="bw-c-first" autocomplete="given-name" maxlength="40"></label>
+        <label class="bw-cf"><span>Surname</span><input type="text" id="bw-c-last" autocomplete="family-name" maxlength="40"></label>
+      </div>
+      <label class="bw-cf"><span>Telephone number</span>
+        <span class="bw-tel"><span class="bw-flag" aria-hidden="true"><svg viewBox="0 0 28 20"><rect width="28" height="20" fill="#fff"/><g fill="#B22234"><rect y="0" width="28" height="1.54"/><rect y="3.08" width="28" height="1.54"/><rect y="6.15" width="28" height="1.54"/><rect y="9.23" width="28" height="1.54"/><rect y="12.3" width="28" height="1.54"/><rect y="15.4" width="28" height="1.54"/><rect y="18.46" width="28" height="1.54"/></g><rect width="12" height="10.8" fill="#3C3B6E"/></svg><i>+1</i></span><input type="tel" id="bw-c-phone" autocomplete="tel" inputmode="tel" placeholder="(612) 555-0123"></span>
+      </label>
+      <label class="bw-cf"><span>Email <em class="bw-opt-label">Optional, for emailed reports</em></span><input type="email" id="bw-c-email" autocomplete="email"></label>
+      <p class="bw-fine">Two Hour Maids will use this to send you updates about your appointment. Reply STOP to any text to opt out.</p>
+      <p id="bw-contact-error" class="bw-error" hidden></p>
+      <div class="bw-actionbar bw-actionbar-right"><button type="submit" class="bw-primary bw-primary-auto" id="bw-contact-go">Continue</button></div>
+    </form>
+  </div>
+
+  
+  <div id="bw-step-calendar" class="bw-card" hidden>
+    <div class="bw-bar">
+      <button type="button" id="bw-times-back" class="bw-bar-back" aria-label="Back"></button>
+      <div class="bw-bar-title"><h3>Pick a time</h3><p class="bw-bar-sub" id="bw-times-sub">Two Hour Maids</p></div>
+    </div>
+
     <div id="bw-calendar-block">
-      <div id="bw-best" hidden style="margin:0 0 14px"><div style="font-weight:600;margin-bottom:6px">Our best times for you</div><div id="bw-best-list" style="display:flex;flex-wrap:wrap;gap:8px"></div><div class="bw-summary-window" style="margin-top:6px">Tap one to hold it for 10 minutes. Or pick any open day below.</div></div>
-      <div class="bw-header">
-        <button type="button" id="bw-prev" class="bw-navbtn" aria-label="Previous month">&#8249;</button>
-        <div id="bw-month-label" class="bw-month-label">Loading…</div>
-        <button type="button" id="bw-next" class="bw-navbtn" aria-label="Next month">&#8250;</button>
+      <div class="bw-sel-row">
+        <div class="bw-sel bw-sel-city"><span class="bw-dd-label">City</span><select id="bw-city" aria-label="City"></select></div>
+        <div class="bw-sel bw-sel-date">
+          <span class="bw-dd-label" id="bw-date-label">Date</span>
+          <button type="button" id="bw-date-btn" class="bw-dd-btn" aria-haspopup="dialog" aria-expanded="false" aria-labelledby="bw-date-label bw-date-val"><span id="bw-date-val" class="bw-dd-val">Pick a date</span><svg class="bw-caret" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5z"/></svg></button>
+        </div>
       </div>
 
-      <div class="bw-weekdays">
-        <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
+      <div id="bw-date-pop" class="bw-pop" role="dialog" aria-label="Choose a date" hidden>
+        <div class="bw-header">
+          <button type="button" id="bw-prev" class="bw-navbtn" aria-label="Previous month">&#8249;</button>
+          <div id="bw-month-label" class="bw-month-label">Loading…</div>
+          <button type="button" id="bw-next" class="bw-navbtn" aria-label="Next month">&#8250;</button>
+        </div>
+
+        <div class="bw-weekdays">
+          <span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span>
+        </div>
+
+        <div id="bw-grid" class="bw-grid" aria-live="polite"></div>
+
+        <div class="bw-legend">
+          <span class="bw-legend-item"><i class="bw-dot bw-dot-green"></i> Available</span>
+          <span class="bw-legend-item"><i class="bw-dot bw-dot-red"></i> Booked</span>
+          <span class="bw-legend-item bw-legend-route" hidden><i class="bw-route-mark" aria-hidden="true"></i> <span id="bw-legend-route-text">$5 off</span></span>
+        </div>
       </div>
 
-      <div id="bw-grid" class="bw-grid" aria-live="polite"></div>
-
-      <div class="bw-legend">
-        <span class="bw-legend-item"><i class="bw-dot bw-dot-green"></i> Available</span>
-        <span class="bw-legend-item"><i class="bw-dot bw-dot-red"></i> Booked</span>
-      </div>
+      <p id="bw-city-hint" class="bw-times-note" hidden></p>
+      <div id="bw-timegrid" class="bw-timegrid" role="radiogroup" aria-label="Open times"></div>
+      <p id="bw-times-note" class="bw-times-note" aria-live="polite"></p>
+      <div id="bw-best" hidden><div class="bw-best-title">Our best times for you</div><div id="bw-best-list" class="bw-best-list"></div></div>
 
       <p id="bw-cal-error" class="bw-error" hidden></p>
+      <div class="bw-actionbar"><button type="button" id="bw-times-go" class="bw-primary" disabled>Continue</button></div>
     </div>
 
   </div>
 
   
   <div id="bw-step-form" class="bw-card" hidden>
-    <button type="button" id="bw-back" class="bw-back">&#8249; Change time</button>
+    <div class="bw-bar">
+      <button type="button" id="bw-back" class="bw-bar-back bw-back" aria-label="Change time"></button>
+      <div class="bw-bar-title"><h3>Your reservation</h3><p class="bw-bar-sub">Two Hour Maids</p></div>
+    </div>
 
     <div id="bw-hold" class="bw-hold" aria-live="polite" hidden></div>
     <div id="bw-selected-summary" class="bw-summary"></div>
+    
+    <div id="bw-contact-card" class="bw-sec-block" hidden>
+      <h4 class="bw-sec">Contact Info</h4>
+      <button type="button" id="bw-contact-edit" class="bw-rowbtn" aria-label="Edit contact info"><span id="bw-contact-lines"></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 7l6 5-6 5z"/></svg></button>
+    </div>
+    
+    <div id="bw-rules" class="bw-sec-block bw-rules-block"></div>
     
     <div id="bw-triage" class="bw-triage">If this is your first clean with us, it's a triage clean: kitchen and baths first. <details class="bw-whats"><summary>What's that?</summary><p>We learn your home and start with the kitchen and baths. What we can't reach is done free on your next visit.</p></details></div>
     
@@ -1577,7 +1926,7 @@
       </div>
 
       <label class="bw-field">
-        <span>Anything we should know? <em class="bw-opt-label">Optional</em></span>
+        <span>Add special request <em class="bw-opt-label">(optional)</em></span>
         <textarea id="bw-special-requests" rows="3" maxlength="1500" placeholder="e.g. Focus on the bathrooms"></textarea>
         
         <span id="bw-2h-cap" class="bw-2h-cap" aria-live="polite" hidden></span>
@@ -1706,11 +2055,26 @@
         Card payments aren't available right now. Please call us and we'll book you in.
       </p>
 
-      <p id="bw-form-error" class="bw-error" hidden></p>
-
-      <button type="submit" id="bw-submit" class="bw-submit">
-        <span id="bw-submit-label">Confirm booking</span>
-      </button>
+      
+      <div id="bw-sheet" class="bw-sheet">
+        <div id="bw-upsell" class="bw-upsell" hidden>
+          <span class="bw-upsell-tag" id="bw-upsell-tag" hidden>Recommended for your home</span>
+          <label class="bw-upsell-row">
+            <input type="checkbox" id="bw-upsell-on">
+            <span class="bw-upsell-text"><b>Add an extra half hour</b><small id="bw-upsell-why"></small></span>
+            <em id="bw-upsell-price"></em>
+          </label>
+        </div>
+        <div id="bw-sheet-plans" class="bw-sheet-plans" hidden>
+          <div class="bw-sheet-head">Choose a plan</div>
+          <div id="bw-plan-rows" class="bw-plan-rows" role="radiogroup" aria-label="How often"></div>
+        </div>
+        <p id="bw-form-error" class="bw-error" hidden></p>
+        <button type="submit" id="bw-submit" class="bw-submit">
+          <span id="bw-submit-label">Confirm booking</span>
+        </button>
+        <p class="bw-sheet-fine" id="bw-sheet-fine">By booking you agree to our <a href="/twohourmaids-site/terms-and-conditions" target="_blank" rel="noopener">terms</a> and the $50 inside-48-hours cancellation fee.</p>
+      </div>
     </form>
   </div>
 
@@ -1720,14 +2084,26 @@
     <p id="bw-ready-cta" class="bw-ready-cta" hidden><a href="#" target="_blank" rel="noopener">Add access notes, pets and requests (2 min)</a></p>
     <div class="bw-done-icon">
       <svg viewBox="0 0 44 44" fill="none" aria-hidden="true">
+        <defs><linearGradient id="bwDoneGrad" x1="12" y1="30" x2="32" y2="14" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="#34a853"/><stop offset=".35" stop-color="#fbbc04"/><stop offset=".65" stop-color="#ea4335"/><stop offset="1" stop-color="#4285f4"/></linearGradient></defs>
         <circle class="bw-done-ring" cx="22" cy="22" r="20" stroke="currentColor" stroke-width="2"/>
         <path class="bw-done-check" d="M13 22.5 19 28.5 31 15.5" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
       </svg>
     </div>
-    <h3 class="bw-done-title">You're booked</h3>
+    <h3 class="bw-done-title">Booking confirmed</h3>
+    <p id="bw-done-email" class="bw-done-email" hidden>Email sent to <b></b></p>
+    
+    <div id="bw-done-card" class="bw-done-card" hidden>
+      <div class="bw-done-date"><b id="bw-done-day"></b><span id="bw-done-mon"></span></div>
+      <div class="bw-done-info"><b id="bw-done-svc"></b><span id="bw-done-home"></span><span id="bw-done-when"></span></div>
+    </div>
+    <div class="bw-done-actions">
+      <a id="bw-done-call" class="bw-circ" href="#"><i aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6.6 10.8c1.4 2.8 3.8 5.1 6.6 6.6l2.2-2.2c.3-.3.7-.4 1-.2 1.1.4 2.3.6 3.6.6.6 0 1 .4 1 1V20c0 .6-.4 1-1 1C10.6 21 3 13.4 3 4c0-.6.4-1 1-1h3.5c.6 0 1 .4 1 1 0 1.3.2 2.5.6 3.6.1.3 0 .7-.2 1l-2.3 2.2z"/></svg></i><span>Call</span></a>
+      <a id="bw-done-text" class="bw-circ" href="#"><i aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 4h16a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1H8l-4 4V5a1 1 0 0 1 1-1z"/></svg></i><span>Text</span></a>
+    </div>
     <p id="bw-done-detail" class="bw-done-detail"></p>
     
     <div id="bw-done-n3" class="bw-done-n3" hidden></div>
+    <div class="bw-actionbar bw-actionbar-center"><button type="button" id="bw-done-btn" class="bw-primary bw-primary-auto">Done</button></div>
   </div>
 
   
@@ -1899,6 +2275,58 @@
       "55449"
     ],
 
+    // Cities for the "Pick a time" screen: [name, [ZIPs]]. The names and ZIPs come from supabase/functions/_shared/serviceCities.ts (the server
+    // matches a booking's ZIP to its city, so keep the two the same; a test checks every service-area ZIP is in exactly one city).
+    CITIES: [ // generated from supabase/functions/_shared/serviceCities.ts (src/lib/serviceCities.json); a test keeps the two the same
+      ["Minneapolis",["55401","55402","55403","55404","55405","55406","55407","55408","55409","55410","55411","55412","55413","55414","55415","55417","55418","55419"]],
+      ["St Paul",["55101","55102","55103","55104","55105","55106","55107","55108","55114","55116","55117","55119","55130"]],
+      ["Bloomington",["55420","55425","55431","55437","55438"]],
+      ["Edina",["55424","55435","55436","55439"]],
+      ["Plymouth",["55441","55442","55446","55447"]],
+      ["Brooklyn Park",["55443","55444","55445"]],
+      ["Eagan",["55121","55122","55123"]],
+      ["Eden Prairie",["55344","55346","55347"]],
+      ["Blaine",["55434","55449"]],
+      ["Brooklyn Center",["55429","55430"]],
+      ["Coon Rapids",["55433","55448"]],
+      ["Maple Grove",["55311","55369"]],
+      ["Maple Plain",["55359","55393"]],
+      ["Minnetonka",["55305","55345"]],
+      ["St Louis Park",["55416","55426"]],
+      ["Apple Valley",["55124"]],
+      ["Champlin",["55316"]],
+      ["Chanhassen",["55317"]],
+      ["Chaska",["55318"]],
+      ["Columbia Heights",["55421"]],
+      ["Crystal",["55428"]],
+      ["Dayton",["55327"]],
+      ["Excelsior",["55331"]],
+      ["Fridley",["55432"]],
+      ["Golden Valley",["55427"]],
+      ["Hanover",["55341"]],
+      ["Hopkins",["55343"]],
+      ["Long Lake",["55356"]],
+      ["Loretto",["55357"]],
+      ["Maplewood",["55109"]],
+      ["Medina",["55340"]],
+      ["Mendota Heights",["55120"]],
+      ["Mound",["55364"]],
+      ["Navarre",["55392"]],
+      ["New Brighton",["55112"]],
+      ["Oakdale",["55128"]],
+      ["Richfield",["55423"]],
+      ["Robbinsdale",["55422"]],
+      ["Rogers",["55374"]],
+      ["Roseville",["55113"]],
+      ["Savage",["55378"]],
+      ["Shakopee",["55379"]],
+      ["Shoreview",["55126"]],
+      ["Vadnais Heights",["55127"]],
+      ["Wayzata",["55391"]],
+      ["West St Paul",["55118"]],
+      ["White Bear Lake",["55110"]]
+    ],
+
     // The three daily times (Jack, 2026-10-13: "9a, 11:40a, 2:40p +/- 15 minutes"), the same as supabase/functions/_shared/slots.ts.
     // Availability is counted per team on the server (slot_board, migration 0274): a time is open while any team is free for it.
     SLOTS: [
@@ -1986,7 +2414,9 @@
   // ===================================================================
 
   var stepOutOfArea = document.getElementById("bw-step-outofarea");
-  var stepCalendar = document.getElementById("bw-step-calendar");
+  var stepCalendar = document.getElementById("bw-step-calendar"); // the times step (city, date, times); the choices before it are stepOptions, then stepContact
+  var stepOptions = document.getElementById("bw-step-options");
+  var stepContact = document.getElementById("bw-step-contact");
   var stepForm = document.getElementById("bw-step-form");
   var stepDone = document.getElementById("bw-step-done");
   var grid = document.getElementById("bw-grid");
@@ -2020,6 +2450,9 @@
   var slowDays = {};   // "YYYY-MM-DD" -> percent
   var slowQuotes = {}; // "service|beds|baths" -> { off_cents, base_cents, pct }
   var slowFixed = {};  // "YYYY-MM-DD|service|beds|baths" -> cents the server said
+  // Reserve-style flow (2026-11-04): the city (display and the route discount), the picked day and time, the route-efficient times the server
+  // marked for that city ("YYYY-MM|duration|city" -> { day: { slot: true } }), the amount it takes off, and amounts it corrected at booking.
+  var selectedCity = "", pickedDay = null, chosen = null, routeByKey = {}, routeOffCents = 0, routeFixed = {};
   // Pay by bank: the business offers "add the card fee you save to your crew's tip" (0676; booking-availability ?flags=1).
   var bankFeeTipOn = false;
 
@@ -2094,7 +2527,7 @@
   function dateStr(y, m, d) { return y + "-" + pad(m + 1) + "-" + pad(d); }
   function monthKey(y, m) { return y + "-" + pad(m + 1); }
   // Long jobs (past 2 h 30 min) need two back-to-back times, so their open times differ from a short job's: cache them apart.
-  function availKey(ym) { return ym + (currentDurationMinutes() > 150 ? "|L" : "|S"); }
+  function availKey(ym) { return ym + (currentDurationMinutes() > 150 ? "|L" : "|S") + "|" + (selectedCity || ""); }
   function monthName(m) {
     return ["January","February","March","April","May","June","July",
             "August","September","October","November","December"][m];
@@ -2160,6 +2593,7 @@
     else { worksEl.textContent = formatPrice(works); worksEl.style.fontSize = ""; }
     var best = CONFIG.FREQUENCIES.reduce(function (m, x) { return x.discountCents > m ? x.discountCents : m; }, 0);
     document.getElementById("bw-gate-price-note").textContent = best > 0 ? "Recurring cleans save up to " + formatPrice(best).replace(/\.00$/, "") + " a visit." : "";
+    renderEstimate();
   }
   gateBedroomSelect.addEventListener("change", gatePreview);
   gateBathroomSelect.addEventListener("change", gatePreview);
@@ -2268,6 +2702,8 @@
           '<button type="button" class="bw-opt-go">Book</button>' +
         '</div>';
       opt.querySelector(".bw-opt-name").textContent = name;
+      // The estimator's pick for this home (Jack, 2026-11-04): the same rule as "Fits your home".
+      if (key === suggestedService()) { var sg = document.createElement("span"); sg.className = "bw-opt-tag"; sg.textContent = "Suggested for your home"; opt.querySelector(".bw-opt-left").insertBefore(sg, opt.querySelector(".bw-opt-name")); }
       opt.querySelector(".bw-opt-hl").textContent = f.highlight;
       if (f.sub) opt.querySelector(".bw-opt-sub").textContent = f.sub; else opt.querySelector(".bw-opt-sub").remove();
       var ul = opt.querySelector(".bw-opt-feats");
@@ -2285,7 +2721,7 @@
       var price = wholeDollars(tilePrice(key));
       opt.querySelector(".bw-opt-price").textContent = price;
       opt.querySelector(".bw-opt-per").textContent = /^\$/.test(price) ? (key === "four_hour" ? "per visit" : "one-time price") : "";
-      var go = function () { btn.click(); stepServices.hidden = true; stepCalendar.hidden = false; if (window.scrollTo) window.scrollTo(0, 0); };
+      var go = function () { btn.click(); stepServices.hidden = true; showOptionsStep(); };
       // The recurring price, revealed a few seconds in (a red X over the one-time price). Only where a frequency discount applies.
       var oneTime = /^\$/.test(price) ? Math.round(parseFloat(price.replace(/[^0-9.]/g, "")) * 100) : 0;
       var recurOff = frequencyDiscountCents("every_other_week", key, gateBathroomSelect.value);
@@ -2409,6 +2845,7 @@
     selectedBedrooms = svcsBed.value; selectedBathrooms = svcsBath.value;
     bedroomSelect.value = selectedBedrooms; bathroomSelect.value = selectedBathrooms;
     gatePreview();
+    syncDropdowns();
     updatePricing();
     renderServiceTiles();
   }
@@ -2416,7 +2853,8 @@
   svcsBath.addEventListener("change", changeHomeSize);
   function showServicesStep() {
     svcsBed.value = gateBedroomSelect.value; svcsBath.value = gateBathroomSelect.value;
-    stepCalendar.hidden = true;
+    syncDropdowns();
+    stepCalendar.hidden = true; stepOptions.hidden = true; stepContact.hidden = true;
     renderServiceTiles();
     stepServices.hidden = false;
     if (window.scrollTo) window.scrollTo(0, 0);
@@ -3545,6 +3983,7 @@
     refreshSlowQuote(); // the slow-day amount for this clean and home size (0677), once per choice
     renderGrid();
     renderTipOptions();
+    renderSheet();
   }
 
   function updateServiceView() {
@@ -4125,15 +4564,17 @@
     // One discount per booking, as create-booking decides it: a promo price (SPONGE, senior, the name code) already is the discount, and the
     // slow-day saving (0677) applies only when it is the biggest one.
     var promoOn = promoPriceOn();
-    var sOff = recurring ? 0 : slowShownCents();
-    var nOff = price == null || promoOn || sOff > 0 ? 0 : Math.min(price, n3Off());
-    var cOff = price == null || promoOn || sOff > 0 ? 0 : Math.min(price - nOff, n3CodeOff());
+    var rOff = routeShownCents(); // the route-efficient time (2026-11-04): one discount per booking, so it only shows when it is the biggest
+    var sOff = recurring || rOff > 0 ? 0 : slowShownCents();
+    var nOff = price == null || promoOn || sOff > 0 || rOff > 0 ? 0 : Math.min(price, n3Off());
+    var cOff = price == null || promoOn || sOff > 0 || rOff > 0 ? 0 : Math.min(price - nOff, n3CodeOff());
     if (nOff > 0) rows.push(["Friends named" + (recurring ? " (first visit)" : ""), "−" + formatPrice(nOff)]);
     if (cOff > 0) rows.push(["Friend's code" + (recurring ? " (first visit)" : ""), "−" + formatPrice(cOff)]);
     if (sOff > 0) rows.push(["Slow-day savings" + infoBtn("About slow-day savings", "<b>A day we have room</b><br><span>Up to " + (Number(slowDays[selected.dateStr]) || 0) +
       "% off the clean. One-time bookings only, one discount per booking (the biggest one applies).</span>"), "−" + formatPrice(sOff)]);
+    if (rOff > 0) rows.push(["Route-efficient time" + infoBtn("About the route-efficient time", "<b>A team is already working near you</b><br><span>That day, so this time saves us driving and saves you " + formatPrice(rOff).replace(/\.00$/, "") + ". One discount per booking (the biggest one applies).</span>"), "−" + formatPrice(rOff)]);
     var taxRate = salesTaxRate();
-    var tf = price == null ? { tax: 0, fee: 0 } : taxesAndFees(recurring ? price : price - nOff - cOff - sOff, taxRate, noCardFee());
+    var tf = price == null ? { tax: 0, fee: 0 } : taxesAndFees(recurring ? price : price - nOff - cOff - sOff - rOff, taxRate, noCardFee());
     var tax = tf.tax + tf.fee; // one line for the customer; the emailed receipt shows the two apart
     var sharePct = Math.round((Number(SALES_TAX.taxable_share) || 1) * 100);
     var taxPart = "<b>Sales tax " + formatPrice(tf.tax) + "</b><br><span>" + salesTaxPct(taxRate) + (sharePct < 100 ? " on " + sharePct + "% of your clean. Dusting and organizing personal items isn't taxed." : " for your address.") +
@@ -4144,7 +4585,7 @@
     var taxInfo = taxPart + feePart;
     if (tax > 0) rows.push([(tf.fee > 0 ? "Taxes and fees" : "Sales tax") + infoBtn("About taxes and fees", taxInfo), formatPrice(tax)]);
     if (tip > 0) rows.push(["Tip for your team", formatPrice(tip)]);
-    var total = price == null ? null : price - nOff - cOff - sOff + tax + tip;
+    var total = price == null ? null : price - nOff - cOff - sOff - rOff + tax + tip;
     orderTotalNow = total == null ? 0 : total; // the quick sheet's wallet shows this (the credit-card total until a card is known)
     var html = rows.map(function (r) { return "<div class='bw-order-row'><span>" + r[0] + "</span><span>" + r[1] + "</span></div>"; }).join("");
     var chargedNow = recurring || paysNowNow();
@@ -4177,6 +4618,7 @@
     var sl = document.getElementById("bw-submit-label");
     if (sl && submitBtn && !submitBtn.disabled) sl.textContent = chargedNow && total != null ? "Pay " + formatPrice(total).replace(/.00$/, "") + " and book" : "Confirm booking";
     el.innerHTML = html;
+    renderSheet();
   }
   function renderTipOptions() {
     if (!tipWrap) return;
@@ -4386,7 +4828,7 @@
     var lastDay = new Date(y, m + 1, 0).getDate();
     var end = dateStr(y, m, lastDay);
 
-    var url = CONFIG.AVAILABILITY_URL + "?org_slug=" + encodeURIComponent(CONFIG.ORG_SLUG) + "&start=" + start + "&end=" + end + "&minutes=" + (currentDurationMinutes() || 0);
+    var url = CONFIG.AVAILABILITY_URL + "?org_slug=" + encodeURIComponent(CONFIG.ORG_SLUG) + "&start=" + start + "&end=" + end + "&minutes=" + (currentDurationMinutes() || 0) + (selectedCity ? "&city=" + encodeURIComponent(selectedCity) : "");
 
     fetch(url, { method: "GET" })
       .then(function (r) { if (!r.ok) throw new Error("bad status"); return r.json(); })
@@ -4399,7 +4841,11 @@
         var sd = (data && data.slow_days) || {};
         Object.keys(sd).forEach(function (d) { if (Number(sd[d]) > 0) slowDays[d] = Number(sd[d]); });
         refreshSlowQuote();
+        // Route-efficient times for the picked city (the server's `route`; empty while the discount is off): a pin instead of a dot.
+        routeByKey[availKey(key)] = (data && data.route) || {};
+        if (data && Number(data.route_off_cents) > 0) routeOffCents = Number(data.route_off_cents);
         renderGrid();
+        autoPickDay();
         if (!window.__bwBestLoaded) { window.__bwBestLoaded = true; loadBest(); }
       })
       .catch(function () {
@@ -4407,6 +4853,7 @@
         // if the webhook is briefly unreachable.
         availabilityCache[availKey(key)] = { __failed: true };
         renderGrid();
+        autoPickDay();
         calError.textContent = "Live availability is temporarily unavailable — showing default schedule.";
         calError.hidden = false;
       });
@@ -4429,7 +4876,7 @@
         var b = document.createElement("button");
         b.type = "button"; b.className = "bw-navbtn"; b.style.cssText = "width:auto;padding:8px 12px";
         b.textContent = prettyDate(x.day) + ", " + slot.label;
-        b.addEventListener("click", function () { pickSlot(x.day, slot); });
+        b.addEventListener("click", function () { chooseTime(x.day, slot); });
         list.appendChild(b);
       });
       box.hidden = !list.children.length;
@@ -4484,7 +4931,7 @@
     monthLabel.textContent = monthName(viewMonth) + " " + viewYear;
     grid.innerHTML = "";
 
-    var firstWeekday = new Date(viewYear, viewMonth, 1).getDay();
+    var firstWeekday = (new Date(viewYear, viewMonth, 1).getDay() + 6) % 7; // the week starts on Monday (the Reserve calendar)
     var daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
 
     var maxDate = new Date(today);
@@ -4526,14 +4973,16 @@
         dotsWrap.className = "bw-dots";
         CONFIG.SLOTS.forEach(function (slot) {
           var available = slotIsAvailable(dStr, slot.key);
+          var routeHit = available && routeSlotHit(dStr, slot.key); // a pin instead of a dot: a team is already working near this city
+          var routeNote = routeHit ? (routeOffOn(dStr, slot.key) > 0 ? ", " + formatPrice(routeOffOn(dStr, slot.key)).replace(/\.00$/, "") + " off" : ", on our route") : "";
           var dot = document.createElement("button");
           dot.type = "button";
-          dot.className = "bw-dot " + (available ? "bw-dot-green" : "bw-dot-red");
-          dot.title = slot.label + (available ? " — available" : " — booked");
-          dot.setAttribute("aria-label", dStr + " " + slot.label + (available ? " available" : " booked"));
+          dot.className = "bw-dot " + (routeHit ? "bw-dot-route" : available ? "bw-dot-green" : "bw-dot-red");
+          dot.title = slot.label + (available ? " — available" + routeNote : " — booked");
+          dot.setAttribute("aria-label", dStr + " " + slot.label + (available ? " available" + routeNote : " booked"));
           if (available) {
             dot.addEventListener("click", function (dStr, slot) {
-              return function () { pickSlot(dStr, slot); };
+              return function () { chooseTime(dStr, slot); closeDatePop(); };
             }(dStr, slot));
           } else {
             dot.disabled = true;
@@ -4545,7 +4994,7 @@
         if (CONFIG.SLOTS.some(function (s) { return slotIsAvailable(dStr, s.key); })) {
           cell.classList.add("bw-cell-open");
           cell.addEventListener("click", function (dStr, cell) {
-            return function (ev) { if (ev.target.closest(".bw-dot")) return; showDayTimes(dStr, cell); };
+            return function (ev) { if (ev.target.closest(".bw-dot")) return; pickDay(dStr); closeDatePop(); };
           }(dStr, cell));
           // A slow day for this clean (0677): "Save 10%" (or the dollars, when the margin floor cut it).
           var slowText = slowBadgeText(dStr);
@@ -4560,68 +5009,11 @@
 
       grid.appendChild(cell);
     }
-    showDayTimes(null);
+    markPickedCell();
+    renderTimes();
   }
 
-  // The three times for one day as labeled buttons under the month; a booked time shows, crossed out, so the day reads complete.
-  function showDayTimes(dStr, cell) {
-    var box = document.getElementById("bw-daytimes");
-    if (!box) {
-      box = document.createElement("div");
-      box.id = "bw-daytimes";
-      grid.parentNode.insertBefore(box, grid.nextSibling);
-    }
-    Array.prototype.forEach.call(grid.querySelectorAll(".bw-cell-on"), function (c) { c.classList.remove("bw-cell-on"); });
-    box.innerHTML = "";
-    box.hidden = !dStr;
-    if (!dStr) return;
-    if (cell) cell.classList.add("bw-cell-on");
-    var head = document.createElement("div");
-    head.className = "bw-daytimes-head";
-    head.textContent = prettyDate(dStr);
-    box.appendChild(head);
-    var slowOff = slowOffOn(dStr);
-    if (slowOff > 0) {
-      var slowNote = document.createElement("p");
-      slowNote.className = "bw-slow-note";
-      slowNote.textContent = "Slow day: " + formatPrice(slowOff) + " off this clean (one-time bookings; one discount per booking).";
-      box.appendChild(slowNote);
-    }
-    var row = document.createElement("div");
-    row.className = "bw-daytimes-row";
-    CONFIG.SLOTS.forEach(function (slot) {
-      var b = document.createElement("button");
-      b.type = "button";
-      b.className = "bw-time";
-      var open = slotIsAvailable(dStr, slot.key);
-      b.textContent = slot.label;
-      // A slow day's saving on each open time too (prc-0091: "Save $19 at 2:40 PM" on the time button); the same text as the day's badge.
-      var save = open ? slowBadgeText(dStr) : "";
-      if (save) { var saveEl = document.createElement("small"); saveEl.className = "bw-time-save"; saveEl.textContent = save; b.appendChild(saveEl); }
-      if (open) b.addEventListener("click", function () { pickSlot(dStr, slot); });
-      else { b.disabled = true; b.setAttribute("aria-label", slot.label + " booked"); }
-      row.appendChild(b);
-    });
-    box.appendChild(row);
-    // A full day: offer the waitlist. Joining is the consent to ONE text if a time opens (the form says so).
-    var anyOpen = CONFIG.SLOTS.some(function (sl) { return slotIsAvailable(dStr, sl.key); });
-    if (!anyOpen) {
-      var wl = document.createElement("div");
-      wl.className = "bw-waitlist";
-      wl.innerHTML = '<p>This day is full. Join the waitlist and we will text you once if a time opens.</p>' +
-        '<input type="text" id="bw-wl-name" placeholder="Your name" autocomplete="name"><input type="tel" id="bw-wl-phone" placeholder="Mobile number" autocomplete="tel">' +
-        '<button type="button" id="bw-wl-go">Join the waitlist</button><p class="bw-wl-note" id="bw-wl-note">We will text this number once to confirm: reply YES and you are on the list. Reply STOP to opt out.</p>';
-      box.appendChild(wl);
-      document.getElementById("bw-wl-go").addEventListener("click", function () {
-        var btn = this, note = document.getElementById("bw-wl-note");
-        btn.disabled = true;
-        fetch(CONFIG.AVAILABILITY_URL, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "waitlist", org_slug: CONFIG.ORG_SLUG, date: dStr, name: document.getElementById("bw-wl-name").value, phone: document.getElementById("bw-wl-phone").value }) })
-          .then(function (r) { return r.json(); })
-          .then(function (j) { note.textContent = j.ok ? "Check your phone: reply YES to our text to confirm." : (j.error === "bad_phone" ? "Please check the phone number." : "That did not save. Please try again."); btn.disabled = !!j.ok; if (j.ok) track("generate_lead", { form: "waitlist" }); })
-          .catch(function () { note.textContent = "That did not save. Please try again."; btn.disabled = false; });
-      });
-    }
-  }
+  // The times for the picked day are drawn by renderTimes() (the Reserve-style times panel, below).
 
   document.getElementById("bw-prev").addEventListener("click", function () {
     if (!canGoBack()) return;
@@ -4722,6 +5114,9 @@
 
     track("begin_checkout", { value: bookingValue(), item: serviceName() });
     renderSelectedSummary();
+    renderContactCard();
+    renderRules();
+    renderSheet();
 
     stepCalendar.hidden = true;
     stepForm.hidden = false;
@@ -4755,13 +5150,17 @@
     // A recurring price also shows the one-time price beside it (prc-0024: a first-timer defaulted to monthly sees both).
     var oneTime = selectedFrequency !== "one_time" ? priceForFrequency("one_time") : null;
     if (oneTime != null && price != null && oneTime > price) priceHtml += "<span class='bw-summary-onetime'>" + formatPrice(oneTime).replace(/\.00$/, "") + " one time</span>";
-    var shortWhat = svc.label.replace(/^The /, "") + (selectedService === "works" ? " · " + selectedBedrooms + " bd, " + selectedBathrooms + " ba" : "") +
-      " · " + (FREQ_SHORT[selectedFrequency] || freqLabel);
+    var what = svc.label.replace(/^The /, "") + " \u00b7 " + (FREQ_SHORT[selectedFrequency] || freqLabel);
+    var homeTxt = selectedBedrooms + " bd \u00b7 " + selectedBathrooms + " ba" + (selectedCity ? " \u00b7 " + selectedCity : "");
+    var ICON_BROOM = "<svg viewBox='0 0 24 24'><path d='M3 10.5 12 3l9 7.5V21h-6v-6H9v6H3z'/></svg>";
+    var ICON_CAL = "<svg viewBox='0 0 24 24'><path d='M19 3h-1V1h-2v2H8V1H6v2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm0 16H5V9h14zm-7-6a2 2 0 1 0 0 4 2 2 0 0 0 0-4z'/></svg>";
+    var rOffNow = routeShownCents();
     document.getElementById("bw-selected-summary").innerHTML =
-      "<div class='bw-summary-top'><div><strong>" + prettyDate(selected.dateStr) + ", " + selected.slotLabel + "</strong>" +
-      (selected.window ? "<div class='bw-summary-window'>Arrive " + selected.window + "</div>" : "") + "</div>" +
+      "<div class='bw-sum-row'><i class='bw-sum-ico' aria-hidden='true'>" + ICON_BROOM + "</i><div class='bw-sum-text'><b>" + esc(what) + "</b><span>" + esc(homeTxt) + "</span></div>" +
       "<div class='bw-price'>" + priceHtml + "</div></div>" +
-      "<div class='bw-summary-service'>" + shortWhat + "</div>";
+      "<div class='bw-sum-row'><i class='bw-sum-ico' aria-hidden='true'>" + ICON_CAL + "</i><div class='bw-sum-text'><b>" + prettyDate(selected.dateStr) + "</b>" +
+      "<span>" + selected.slotLabel + (selected.window ? " \u00b7 arrive " + selected.window : "") + "</span>" +
+      (rOffNow > 0 ? "<span class='bw-sum-route'>" + PIN_SVG + formatPrice(rOffNow).replace(/\.00$/, "") + " off: a team is already working near you</span>" : "") + "</div></div>";
   }
 
   document.getElementById("bw-back").addEventListener("click", function () {
@@ -4880,6 +5279,10 @@
       bank_fee_tip_shown_cents: bankTipCents(),
       // Slow-day savings shown for this day (0677): the server works it out again and refuses (slow_day_changed) if it differs.
       slow_day_shown_cents: slowShownCents(),
+      // Route-efficient time (2026-11-04): the city picked for it and the saving shown; the server decides again from the ZIP (route_changed).
+      city: selectedCity || null,
+      route_shown_cents: routeShownCents(),
+      home_condition: (document.getElementById("bw-gate-condition") || {}).value || null,
       gift_code: ((document.getElementById("bw-gift-code") || {}).value || "").trim().toUpperCase() || null, // one-time cleans only; the server checks it and lowers the amount charged now
       promo_code: currentPromoCode() || null,
       promo_applied: promoAppliesFor(selectedFrequency),
@@ -4926,6 +5329,16 @@
           throw new Error(slowNow > 0
             ? "The slow-day savings for this day are now " + formatPrice(slowNow) + ". Check your total and tap Pay again."
             : "The slow-day savings no longer apply to this day. Check your total and tap Pay again.");
+        }
+        if (data && data.error === "route_changed") {
+          // The server's route-efficient saving differs from what the page showed (the ZIP is in another city, or the time is no longer on a
+          // route). Nothing was charged: show the server's amount and let the customer tap Pay again.
+          var routeNow = Math.max(0, Number(data.route_discount_cents) || 0);
+          routeFixed[selected.dateStr + "|" + selected.slotKey + "|" + zipText()] = routeNow;
+          renderOrder(); renderSelectedSummary();
+          throw new Error(routeNow > 0
+            ? "The route-efficient saving for this time is now " + formatPrice(routeNow) + ". Check your total and tap Pay again."
+            : "The route-efficient saving does not apply to this time and ZIP. Check your total and tap Pay again.");
         }
         if (!data || data.ok === false) {
           throw new Error(data && data.error === "slot_taken"
@@ -5093,12 +5506,13 @@
     if (holdEl) holdEl.hidden = true;
     var pretty = prettyDate(selected.dateStr);
     document.getElementById("bw-done-detail").textContent =
-      pretty + " at " + selected.slotLabel + " with " + CONFIG.BUSINESS_NAME + ". A confirmation has been sent to your email." +
+      pretty + " at " + selected.slotLabel + " with " + CONFIG.BUSINESS_NAME + "." +
       (res && res.bank_linked ? " Your visits after this one will be paid from your bank account." +
          (Number(res.bank_fee_tip_cents) > 0 ? " The " + formatPrice(Number(res.bank_fee_tip_cents)) + " you save on each one goes to your crew as a tip. Thank you!" : "") :
        res && res.bank_wanted ? " Your bank wasn't connected, so your card will be used for later visits. Text us any time to switch to bank." : "");
     try { sessionStorage.removeItem("bw_ref"); } catch (e) {}
     renderNameThreeShares(res && res.name_three);
+    fillDone(res);
     stepForm.hidden = true;
     stepDone.hidden = false;
   }
@@ -5438,8 +5852,7 @@
         if (dTried || stepCalendar.hidden || !availabilityCache[availKey(monthKey(dY, dM))]) return;
         dTried = true;
         if (slotIsAvailable(dDate, dSlot.key)) { pickSlot(dDate, dSlot); return; }
-        var dDot = grid.querySelector('.bw-dot[aria-label^="' + dDate + ' "]');
-        showDayTimes(dDate, dDot && dDot.closest(".bw-cell"));
+        pickDay(dDate); // the day opens in the times panel, with the note below
         calError.textContent = "That time is no longer open. Please pick another.";
         calError.hidden = false;
       };
@@ -5484,6 +5897,435 @@
       document.getElementById("bw-tie-on").addEventListener("change", function () { document.getElementById("bw-tie-body").hidden = !this.checked; });
     }).catch(function () {});
   })();
+  // ================================================================================================================================
+  // Reserve-style flow (Jack, 2026-11-04: "make sure that this book widget looks like this flow"; the Reserve with Google screens):
+  //   gate (beds, baths, how the home is) -> services -> your visit -> contact info -> pick a time (city, date, times) -> your reservation
+  //   (contact row, rules, details, the bottom sheet) -> confirmed.
+  // Nothing below changes a price or a payment rule: the screens fill the same fields the details step has always sent, and the route
+  // discount follows the slow-day pattern (the server decides; the page shows it and sends what it showed).
+  // ================================================================================================================================
+  var CITY_ZIPS = {};
+  (CONFIG.CITIES || []).forEach(function (c) { CITY_ZIPS[c[0]] = c[1]; });
+
+  // ---- a Reserve-style dropdown over a native <select> (the select stays, hidden, so every existing read of .value still works) ----
+  var dropdowns = [];
+  function enhanceSelect(sel, labelText, placeholder) {
+    if (!sel || sel._bwdd) return;
+    var wrap = document.createElement("div");
+    wrap.className = "bw-dd";
+    var hostLabel = sel.closest("label");
+    var lab = document.createElement("span");
+    lab.className = "bw-dd-label";
+    lab.textContent = labelText || "";
+    var btn = document.createElement("button");
+    btn.type = "button"; btn.className = "bw-dd-btn";
+    btn.setAttribute("aria-haspopup", "listbox"); btn.setAttribute("aria-expanded", "false");
+    btn.innerHTML = "<span class='bw-dd-val'></span><svg class='bw-caret' viewBox='0 0 24 24' aria-hidden='true'><path d='M7 10l5 5 5-5z'/></svg>";
+    var list = document.createElement("ul");
+    list.className = "bw-dd-list"; list.setAttribute("role", "listbox"); list.hidden = true;
+    var id = "bw-dd-" + dropdowns.length;
+    list.id = id; btn.setAttribute("aria-controls", id);
+    if (hostLabel) { hostLabel.parentNode.insertBefore(wrap, hostLabel); hostLabel.hidden = true; wrap.appendChild(sel); }
+    else { sel.parentNode.insertBefore(wrap, sel); wrap.appendChild(sel); }
+    sel.classList.add("bw-native"); sel.tabIndex = -1; sel.setAttribute("aria-hidden", "true");
+    if (labelText) { wrap.insertBefore(lab, sel); btn.setAttribute("aria-label", labelText); }
+    wrap.appendChild(btn); wrap.appendChild(list);
+    function sync() {
+      var o = sel.options[sel.selectedIndex];
+      var empty = !o || o.value === "";
+      btn.querySelector(".bw-dd-val").textContent = o && !empty ? o.text : (placeholder || (o ? o.text : ""));
+      btn.classList.toggle("is-empty", empty);
+      Array.prototype.forEach.call(list.children, function (li, i) { var on = sel.selectedIndex === i; li.classList.toggle("is-on", on); li.setAttribute("aria-selected", on ? "true" : "false"); });
+    }
+    function build() {
+      list.innerHTML = "";
+      Array.prototype.slice.call(sel.options).forEach(function (o, i) {
+        var li = document.createElement("li");
+        li.setAttribute("role", "option"); li.textContent = o.text; li.tabIndex = -1;
+        if (o.value === "") li.classList.add("is-placeholder");
+        li.addEventListener("click", function () { choose(i); });
+        list.appendChild(li);
+      });
+      sync();
+    }
+    function choose(i) {
+      sel.selectedIndex = i;
+      sel.dispatchEvent(new Event("change", { bubbles: true }));
+      sync(); close(); btn.focus();
+    }
+    function open() {
+      dropdowns.forEach(function (d) { if (d.close !== close) d.close(); });
+      list.hidden = false; btn.setAttribute("aria-expanded", "true"); wrap.classList.add("is-open");
+      var on = list.querySelector(".is-on");
+      if (on) list.scrollTop = Math.max(0, on.offsetTop - (list.clientHeight - on.offsetHeight) / 2);
+    }
+    function close() { list.hidden = true; btn.setAttribute("aria-expanded", "false"); wrap.classList.remove("is-open"); }
+    btn.addEventListener("click", function () { if (list.hidden) open(); else close(); });
+    btn.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") { close(); return; }
+      if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+        e.preventDefault();
+        var n = Math.min(sel.options.length - 1, Math.max(0, sel.selectedIndex + (e.key === "ArrowDown" ? 1 : -1)));
+        sel.selectedIndex = n; sel.dispatchEvent(new Event("change", { bubbles: true })); sync();
+        if (!list.hidden) open();
+      }
+    });
+    document.addEventListener("click", function (e) { if (!wrap.contains(e.target)) close(); });
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape") close(); });
+    sel._bwdd = true;
+    sel.addEventListener("change", sync); // a value set by the page (a saved choice, the other size picker) shows in the box too
+    dropdowns.push({ sel: sel, sync: sync, close: close, build: build });
+    build();
+  }
+  function syncDropdowns() { dropdowns.forEach(function (d) { d.sync(); }); }
+
+  // ---- what to suggest for this home (the estimator on the first screen) ----
+  var CONDITION_TEXT = { kept: "kept up", "while": "not cleaned in a while", dirty: "really dirty" };
+  function homeLabel() {
+    var b = gateBedroomSelect.options[gateBedroomSelect.selectedIndex];
+    var beds = b ? (gateBedroomSelect.value === "0" ? "Studio" : b.text + " bed") : "";
+    return beds + ", " + gateBathroomSelect.value + " bath";
+  }
+  function renderEstimate() {
+    var el = document.getElementById("bw-est");
+    if (!el) return;
+    var fits = twoHourFits();
+    var works = CONFIG.SERVICES.works.durationMinutes;
+    document.getElementById("bw-est-name").textContent = fits ? "Two Hour Clean" : "The Checklist Clean";
+    document.getElementById("bw-est-time").textContent = fits ? "2 hr" : "About " + hm(works);
+    document.getElementById("bw-est-crew").textContent = "2 maids";
+    var worksText = document.getElementById("bw-gate-price-works").textContent;
+    document.getElementById("bw-est-price").textContent = wholeDollars(fits ? formatPrice(CONFIG.BASE_PRICE_CENTS) : (LEVELS_PRICED ? "By level" : worksText));
+    var why = fits
+      ? homeLabel() + " fits two maids in two hours: the kitchen, the floors, up to 2½ baths and 2 to 4 bedrooms."
+      : homeLabel() + " is more than two hours covers (up to 4 bedrooms and 2½ baths). The Checklist Clean works through every room and takes the time it takes.";
+    var cond = (document.getElementById("bw-gate-condition") || {}).value || "kept";
+    if (cond !== "kept" && fits) why += " Since your home is " + CONDITION_TEXT[cond] + ", we will suggest an extra half hour before you pay. Your price stays flat.";
+    document.getElementById("bw-est-why").textContent = why;
+  }
+  function suggestedService() { return twoHourFits() ? "two_hour" : "works"; }
+
+  // ---- steps: your visit -> contact info -> pick a time ----
+  var contactDone = false, contactReturn = null;
+  function scrollTop() { try { var r = document.getElementById("bw-root"); if (r && r.scrollIntoView) r.scrollIntoView({ block: "start" }); } catch (e) { /* the page stays where it is */ } }
+  function showOptionsStep() {
+    document.getElementById("bw-options-sub").textContent = serviceName() + " · " + selectedBedrooms + " bd · " + selectedBathrooms + " ba";
+    document.getElementById("bw-options-go").hidden = calendarBlock.hidden;
+    stepOptions.hidden = false;
+    scrollTop();
+  }
+  function showContactStep(ret) {
+    contactReturn = ret || null;
+    var nm = (document.getElementById("bw-name").value || "").trim();
+    var first = document.getElementById("bw-c-first"), last = document.getElementById("bw-c-last");
+    if (nm && !first.value) { var parts = nm.split(/\s+/); first.value = parts.shift() || ""; last.value = parts.join(" "); }
+    var ph = document.getElementById("bw-phone").value, em = document.getElementById("bw-email").value;
+    if (ph && !document.getElementById("bw-c-phone").value) document.getElementById("bw-c-phone").value = ph;
+    if (em && !document.getElementById("bw-c-email").value) document.getElementById("bw-c-email").value = em;
+    document.getElementById("bw-contact-error").hidden = true;
+    stepContact.hidden = false;
+    scrollTop();
+  }
+  function showTimesStep() {
+    stepCalendar.hidden = false;
+    document.getElementById("bw-times-sub").textContent = serviceName() + " · " + selectedBedrooms + " bd · " + selectedBathrooms + " ba";
+    loadMonth(viewYear, viewMonth);
+    renderTimes();
+    scrollTop();
+  }
+  // What they type here is copied into the details form as they type, so the abandoned-booking capture (which reads that form) still sees it.
+  function mirrorContact() {
+    var first = document.getElementById("bw-c-first").value.trim(), last = document.getElementById("bw-c-last").value.trim();
+    document.getElementById("bw-name").value = (first + " " + last).trim();
+    document.getElementById("bw-phone").value = document.getElementById("bw-c-phone").value.trim();
+    document.getElementById("bw-email").value = document.getElementById("bw-c-email").value.trim();
+  }
+  function renderContactCard() {
+    var card = document.getElementById("bw-contact-card");
+    document.getElementById("bw-root").classList.toggle("bw-has-contact", contactDone);
+    card.hidden = !contactDone;
+    if (!contactDone) return;
+    var nm = document.getElementById("bw-name").value.trim(), ph = document.getElementById("bw-phone").value.trim(), em = document.getElementById("bw-email").value.trim();
+    document.getElementById("bw-contact-lines").innerHTML = "<b>" + esc(nm) + "</b><span>" + esc(ph) + "</span>" + (em ? "<span>" + esc(em) + "</span>" : "");
+  }
+  // Rules and restrictions: the cancellation fee in one place before the card; the service's own re-clean and refund line when the page has it.
+  function renderRules() {
+    var el = document.getElementById("bw-rules");
+    var X = "<i class='bw-rule-ico' aria-hidden='true'><svg viewBox='0 0 24 24'><path d='M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 2a8 8 0 1 1 0 16 8 8 0 0 1 0-16zm-3.3 4.3L12 11.6l3.3-3.3 1.4 1.4-3.3 3.3 3.3 3.3-1.4 1.4-3.3-3.3-3.3 3.3-1.4-1.4 3.3-3.3-3.3-3.3z'/></svg></i>";
+    var pol = document.getElementById("bw-policy");
+    var polText = pol && !pol.hidden ? pol.textContent.trim() : "";
+    el.innerHTML = "<h4 class='bw-sec'>Rules &amp; restrictions</h4>" +
+      "<div class='bw-rule'>" + X + "<div><b>Cancellation policy</b><p>Cancel at least 48 hours before your visit. Inside 48 hours there is a $50 fee.</p></div></div>" +
+      (polText ? "<div class='bw-rule'>" + X + "<div><b>Re-cleans and refunds</b><p>" + esc(polText) + "</p></div></div>" : "");
+  }
+
+  // ---- the times panel: city, date (the dot calendar), the open times ----
+  function parseDay(dStr) { return new Date(dStr + "T00:00:00"); }
+  function dayLabel(dStr) {
+    var d = parseDay(dStr), t = new Date(today), diff = Math.round((d - t) / 86400000);
+    if (diff === 0) return "Today";
+    if (diff === 1) return "Tomorrow";
+    return d.toLocaleDateString(undefined, { weekday: "short", month: "short", day: "numeric" });
+  }
+  function syncDateBtn() { document.getElementById("bw-date-val").textContent = pickedDay ? dayLabel(pickedDay) : "Pick a date"; }
+  function markPickedCell() {
+    Array.prototype.forEach.call(grid.querySelectorAll(".bw-cell-on"), function (c) { c.classList.remove("bw-cell-on"); });
+    if (!pickedDay || pickedDay.slice(0, 7) !== monthKey(viewYear, viewMonth)) return;
+    var cell = grid.querySelectorAll(".bw-cell:not(.bw-cell-blank)")[Number(pickedDay.slice(8, 10)) - 1];
+    if (cell) cell.classList.add("bw-cell-on");
+  }
+  function pickDay(dStr) {
+    pickedDay = dStr;
+    if (chosen && chosen.dateStr !== dStr) chosen = null;
+    syncDateBtn(); markPickedCell(); renderTimes();
+  }
+  function chooseTime(dStr, slot) {
+    pickedDay = dStr; chosen = { dateStr: dStr, slot: slot };
+    syncDateBtn(); markPickedCell(); renderTimes();
+    try { document.getElementById("bw-times-go").scrollIntoView({ block: "nearest", behavior: "smooth" }); } catch (e) { /* stays */ }
+  }
+  // The first day with an open time, picked for them (the Reserve flow opens on "Today"), once the month has loaded.
+  function autoPickDay() {
+    if (pickedDay) return;
+    var days = new Date(viewYear, viewMonth + 1, 0).getDate();
+    for (var d = 1; d <= days; d++) {
+      var cd = new Date(viewYear, viewMonth, d), dStr = dateStr(viewYear, viewMonth, d);
+      if (cd < today || holidayClosed[dStr] || !isOpenWeekday(viewYear, viewMonth, d)) continue;
+      if (CONFIG.SLOTS.some(function (s) { return slotIsAvailable(dStr, s.key); })) { pickDay(dStr); return; }
+    }
+  }
+  var PIN_SVG = "<svg class='bw-pin' viewBox='0 0 24 24' aria-hidden='true'><path d='M12 2.5c-3.6 0-6.5 2.8-6.5 6.4 0 4.7 6.5 12.6 6.5 12.6s6.5-7.9 6.5-12.6c0-3.6-2.9-6.4-6.5-6.4z'/><circle cx='12' cy='9' r='2.4'/></svg>";
+  function finishText(slot) {
+    var mins = currentDurationMinutes();
+    if (!(mins > 0) || !slot) return "";
+    function clock(m) { var h = Math.floor(m / 60) % 24, mm = m % 60, ap = h >= 12 ? "PM" : "AM"; return (h % 12 || 12) + ":" + (mm < 10 ? "0" : "") + mm + " " + ap; }
+    var t = Number(slot.key.slice(0, 2)) * 60 + Number(slot.key.slice(2, 4));
+    return "About " + hm(mins) + " of cleaning, so the team is done around " + clock(t - 15 + mins) + " to " + clock(t + 15 + mins) + ".";
+  }
+  var TWO_TIME_OVER_MIN = 150; // the same cutoff as _shared/slots.ts: past it a clean takes two back-to-back times
+  function renderTimes() {
+    var box = document.getElementById("bw-timegrid"), note = document.getElementById("bw-times-note"), go = document.getElementById("bw-times-go");
+    var hint = document.getElementById("bw-city-hint");
+    if (!box) return;
+    box.innerHTML = "";
+    var routeKnown = routeOffCents > 0;
+    hint.hidden = !(routeKnown && !selectedCity);
+    if (!hint.hidden) hint.textContent = "Choose your city to see times that save " + formatPrice(routeOffCents).replace(/\.00$/, "") + ". A pin marks a time when a team is already working near you.";
+    var legendRoute = document.querySelector(".bw-legend-route");
+    if (legendRoute) { legendRoute.hidden = !(routeKnown && selectedCity); document.getElementById("bw-legend-route-text").textContent = formatPrice(routeOffCents).replace(/\.00$/, "") + " off"; }
+    if (!pickedDay) { note.textContent = "Pick a date to see open times."; go.disabled = true; return; }
+    var slowOff = slowOffOn(pickedDay);
+    CONFIG.SLOTS.forEach(function (slot) {
+      var b = document.createElement("button");
+      b.type = "button"; b.className = "bw-time"; b.setAttribute("role", "radio");
+      var open = slotIsAvailable(pickedDay, slot.key);
+      var picked = !!(chosen && chosen.dateStr === pickedDay && chosen.slot.key === slot.key);
+      var rOff = open ? routeOffOn(pickedDay, slot.key) : 0;
+      var pin = open && routeSlotHit(pickedDay, slot.key);
+      var html = "<span class='bw-t'>" + esc(slot.label) + "</span>";
+      if (pin) html += "<span class='bw-t-sub bw-t-route'>" + PIN_SVG + (rOff > 0 ? formatPrice(rOff).replace(/\.00$/, "") + " off" : "On our route") + "</span>";
+      else if (open && slowOff > 0 && slowBadgeText(pickedDay)) html += "<span class='bw-t-sub bw-time-save'>" + esc(slowBadgeText(pickedDay)) + "</span>";
+      else if (!open) html += "<span class='bw-t-sub'>Booked</span>";
+      b.innerHTML = html;
+      b.setAttribute("aria-checked", picked ? "true" : "false");
+      if (picked) b.classList.add("is-picked");
+      if (pin) b.classList.add("is-route");
+      if (open) b.addEventListener("click", function () { chooseTime(pickedDay, slot); });
+      else { b.disabled = true; b.setAttribute("aria-label", slot.label + " booked"); }
+      box.appendChild(b);
+    });
+    var anyOpen = CONFIG.SLOTS.some(function (sl) { return slotIsAvailable(pickedDay, sl.key); });
+    if (!anyOpen) {
+      var wl = document.createElement("div");
+      wl.className = "bw-waitlist";
+      wl.innerHTML = '<p>This day is full. Join the waitlist and we will text you once if a time opens.</p>' +
+        '<input type="text" id="bw-wl-name" placeholder="Your name" autocomplete="name"><input type="tel" id="bw-wl-phone" placeholder="Mobile number" autocomplete="tel">' +
+        '<button type="button" id="bw-wl-go">Join the waitlist</button><p class="bw-wl-note" id="bw-wl-note">We will text this number once to confirm: reply YES and you are on the list. Reply STOP to opt out.</p>';
+      box.appendChild(wl);
+      var wn = document.getElementById("bw-wl-name"), wp = document.getElementById("bw-wl-phone");
+      if (wn && !wn.value) wn.value = document.getElementById("bw-name").value;
+      if (wp && !wp.value) wp.value = document.getElementById("bw-phone").value;
+      document.getElementById("bw-wl-go").addEventListener("click", function () {
+        var btn = this, wnote = document.getElementById("bw-wl-note");
+        btn.disabled = true;
+        fetch(CONFIG.AVAILABILITY_URL, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "waitlist", org_slug: CONFIG.ORG_SLUG, date: pickedDay, name: document.getElementById("bw-wl-name").value, phone: document.getElementById("bw-wl-phone").value }) })
+          .then(function (r) { return r.json(); })
+          .then(function (j) { wnote.textContent = j.ok ? "Check your phone: reply YES to our text to confirm." : (j.error === "bad_phone" ? "Please check the phone number." : "That did not save. Please try again."); btn.disabled = !!j.ok; if (j.ok) track("generate_lead", { form: "waitlist" }); })
+          .catch(function () { wnote.textContent = "That did not save. Please try again."; btn.disabled = false; });
+      });
+    }
+    // A chosen time that is no longer open (a long clean, a city change refreshed the day): clear it.
+    if (chosen && !slotIsAvailable(chosen.dateStr, chosen.slot.key)) chosen = null;
+    go.disabled = !chosen;
+    if (chosen && chosen.dateStr === pickedDay) {
+      var ro = routeOffOn(chosen.dateStr, chosen.slot.key);
+      note.textContent = prettyDate(chosen.dateStr) + " at " + chosen.slot.label + ". Arrive " + chosen.slot.window + ". " + finishText(chosen.slot) + (ro > 0 ? " This time saves " + formatPrice(ro).replace(/\.00$/, "") + ": a team is already working near you." : "");
+    } else if (slowOff > 0) {
+      note.textContent = "Slow day: " + formatPrice(slowOff) + " off this clean (one-time bookings; one discount per booking).";
+    } else {
+      note.textContent = currentDurationMinutes() > TWO_TIME_OVER_MIN ? "A clean this long needs two back-to-back times, so fewer start times show." : "Pick a time. Arrival is a 30 minute window.";
+    }
+  }
+
+  // ---- the route-efficiency discount (display only; create-booking decides again from the ZIP and refuses with route_changed) ----
+  function routeSlotHit(dStr, slotKey) {
+    var m = routeByKey[availKey(dStr.slice(0, 7))];
+    return !!(m && m[dStr] && m[dStr][slotKey] === true);
+  }
+  function routeEligible() { return ["two_hour", "works", "four_hour"].indexOf(selectedService) !== -1 && !isCatalogService() && !(selectedService === "works" && hcOn); }
+  function zipText() { var z = document.getElementById("bw-zip"); return z ? z.value.trim() : ""; }
+  function zipOutsideCity() {
+    var z = zipText();
+    if (!/^\d{5}$/.test(z) || !selectedCity || !CITY_ZIPS[selectedCity]) return false;
+    return CITY_ZIPS[selectedCity].indexOf(z) === -1;
+  }
+  function routeOffOn(dStr, slotKey) {
+    if (!dStr || !slotKey || !(routeOffCents > 0) || !routeEligible() || promoPriceOn() || !routeSlotHit(dStr, slotKey) || zipOutsideCity()) return 0;
+    var fixed = routeFixed[dStr + "|" + slotKey + "|" + zipText()];
+    if (fixed != null) return fixed;
+    return routeOffCents > Math.max(n3Off(), n3CodeOff(), slowOffOn(dStr)) ? routeOffCents : 0;
+  }
+  function routeShownCents() {
+    var price = priceForFrequency(selectedFrequency);
+    return price == null || !selected ? 0 : Math.min(price, routeOffOn(selected.dateStr, selected.slotKey));
+  }
+
+  // ---- the bottom sheet: the half-hour offer and CHOOSE A PLAN ----
+  var PLAN_ORDER = ["every_4_weeks", "every_other_week", "one_time"];
+  function renderSheet() {
+    var rowsEl = document.getElementById("bw-plan-rows");
+    if (!rowsEl) return;
+    var wrap = document.getElementById("bw-sheet-plans");
+    wrap.hidden = freqWrap.hidden || !selected;
+    if (!wrap.hidden) {
+      var once = priceForFrequency("one_time");
+      rowsEl.innerHTML = "";
+      PLAN_ORDER.forEach(function (k) {
+        var price = priceForFrequency(k);
+        if (price == null) return;
+        var save = k !== "one_time" && once != null && once > price ? once - price : 0;
+        var row = document.createElement("button");
+        row.type = "button"; row.className = "bw-plan" + (selectedFrequency === k ? " is-on" : "");
+        row.setAttribute("role", "radio"); row.setAttribute("aria-checked", selectedFrequency === k ? "true" : "false");
+        row.innerHTML = "<i class='bw-radio' aria-hidden='true'></i><span class='bw-plan-name'>" + esc(FREQ_SHORT[k] || k) + "</span>" +
+          (save > 0 ? "<span class='bw-plan-save'>Save " + wholeDollars(formatPrice(save)) + "</span>" : "") +
+          "<b class='bw-plan-price'>" + wholeDollars(formatPrice(price)) + (k === "one_time" ? "" : "<small> a visit</small>") + "</b>";
+        row.addEventListener("click", function () {
+          if (selectedFrequency === k) return;
+          freqSelect.value = k;
+          freqSelect.dispatchEvent(new Event("change", { bubbles: true }));
+        });
+        rowsEl.appendChild(row);
+      });
+    }
+    // The half hour: the Two Hour Clean only; recommended when the home is not kept up. Same box the old checkbox is.
+    var up = document.getElementById("bw-upsell"), half = document.getElementById("bw-2h-half");
+    var showUp = selectedService === "two_hour" && !!selected;
+    up.hidden = !showUp;
+    if (!showUp) return;
+    var cond = (document.getElementById("bw-gate-condition") || {}).value || "kept";
+    var rec = cond !== "kept";
+    document.getElementById("bw-upsell-tag").hidden = !rec;
+    document.getElementById("bw-upsell-tag").textContent = cond === "dirty" ? "Recommended: your home is really dirty" : "Recommended: it has been a while";
+    document.getElementById("bw-upsell-why").textContent = (rec ? "30 more minutes for the team, so they can get to more of the home. " : "30 more minutes for the team (2½ hours in all). ") + "Your price stays flat.";
+    document.getElementById("bw-upsell-price").textContent = "+" + wholeDollars(formatPrice(EXTRA_HALF_CENTS));
+    document.getElementById("bw-upsell-on").checked = !!(half && half.checked);
+    up.classList.toggle("is-rec", rec);
+  }
+
+  function fillDone(res) {
+    var em = document.getElementById("bw-email").value.trim();
+    var emEl = document.getElementById("bw-done-email");
+    emEl.hidden = !em; emEl.querySelector("b").textContent = em;
+    var d = parseDay(selected.dateStr);
+    document.getElementById("bw-done-day").textContent = d.getDate();
+    document.getElementById("bw-done-mon").textContent = d.toLocaleDateString(undefined, { month: "short" }).toUpperCase();
+    document.getElementById("bw-done-svc").textContent = serviceName() + " · " + CONFIG.BUSINESS_NAME;
+    document.getElementById("bw-done-home").textContent = selectedBedrooms + " bd · " + selectedBathrooms + " ba · " + (FREQ_SHORT[selectedFrequency] || "");
+    document.getElementById("bw-done-when").textContent = d.toLocaleDateString(undefined, { weekday: "short" }) + " · " + selected.slotLabel;
+    document.getElementById("bw-done-card").hidden = false;
+    document.getElementById("bw-done-call").href = "tel:" + CONFIG.BUSINESS_PHONE;
+    document.getElementById("bw-done-text").href = "sms:" + CONFIG.BUSINESS_PHONE;
+  }
+
+  function closeDatePop() {
+    var pop = document.getElementById("bw-date-pop"), btn = document.getElementById("bw-date-btn");
+    if (pop) pop.hidden = true;
+    if (btn) btn.setAttribute("aria-expanded", "false");
+  }
+  function initReserve() {
+    enhanceSelect(gateBedroomSelect, "Bedrooms");
+    enhanceSelect(gateBathroomSelect, "Bathrooms");
+    enhanceSelect(document.getElementById("bw-gate-condition"), "How is your home right now?");
+    enhanceSelect(svcsBed, "Bedrooms");
+    enhanceSelect(svcsBath, "Bathrooms");
+    // the city list: the names the server knows (supabase/functions/_shared/serviceCities.ts)
+    var citySel = document.getElementById("bw-city");
+    citySel.innerHTML = "<option value=''>Choose city</option>" + (CONFIG.CITIES || []).map(function (c) { return "<option value='" + esc(c[0]) + "'>" + esc(c[0]) + "</option>"; }).join("");
+    enhanceSelect(citySel, "", "Choose city");
+    citySel.addEventListener("change", function () {
+      selectedCity = citySel.value;
+      chosen = null;
+      calError.hidden = true;
+      loadMonth(viewYear, viewMonth);
+      renderTimes();
+      try { renderOrder(); } catch (e) { /* the order follows the next change */ }
+    });
+    document.getElementById("bw-gate-condition").addEventListener("change", function () { renderEstimate(); if (selected) renderSheet(); });
+    gateBedroomSelect.addEventListener("change", renderEstimate);
+    gateBathroomSelect.addEventListener("change", renderEstimate);
+    renderEstimate();
+
+    // the date button opens the dot calendar
+    var dateBtn = document.getElementById("bw-date-btn"), pop = document.getElementById("bw-date-pop");
+    dateBtn.addEventListener("click", function () {
+      if (pop.hidden) {
+        if (pickedDay) { var py = Number(pickedDay.slice(0, 4)), pm = Number(pickedDay.slice(5, 7)) - 1; if (py !== viewYear || pm !== viewMonth) { viewYear = py; viewMonth = pm; loadMonth(viewYear, viewMonth); } }
+        pop.hidden = false; dateBtn.setAttribute("aria-expanded", "true");
+        dropdowns.forEach(function (d) { d.close(); });
+      } else closeDatePop();
+    });
+    document.addEventListener("click", function (e) { if (!pop.hidden && !pop.contains(e.target) && !dateBtn.contains(e.target)) closeDatePop(); });
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeDatePop(); });
+
+    // steps
+    document.getElementById("bw-options-go").addEventListener("click", function () { stepOptions.hidden = true; showContactStep(null); });
+    document.getElementById("bw-contact-back").addEventListener("click", function () {
+      stepContact.hidden = true;
+      if (contactReturn === "form") stepForm.hidden = false; else showOptionsStep();
+    });
+    ["bw-c-first", "bw-c-last", "bw-c-phone", "bw-c-email"].forEach(function (id) { document.getElementById(id).addEventListener("input", mirrorContact); });
+    document.getElementById("bw-contact-form").addEventListener("submit", function (e) {
+      e.preventDefault();
+      var err = document.getElementById("bw-contact-error");
+      var first = document.getElementById("bw-c-first").value.trim(), last = document.getElementById("bw-c-last").value.trim();
+      var phone = document.getElementById("bw-c-phone").value.trim(), email = document.getElementById("bw-c-email").value.trim();
+      var msg = !first || !last ? "Enter your first name and surname." : phone.replace(/\D/g, "").replace(/^1(?=\d{10}$)/, "").length !== 10 ? "Enter a 10-digit phone number." : email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) ? "That email does not look right." : "";
+      if (msg) { err.textContent = msg; err.hidden = false; return; }
+      err.hidden = true;
+      mirrorContact();
+      contactDone = true;
+      try { checkNameCode(); } catch (e2) { /* a friend's code is checked again at booking */ }
+      stepContact.hidden = true;
+      if (contactReturn === "form") { renderContactCard(); renderSelectedSummary(); stepForm.hidden = false; scrollTop(); } else showTimesStep();
+    });
+    document.getElementById("bw-times-back").addEventListener("click", function () {
+      stepCalendar.hidden = true;
+      if (contactDone) showContactStep(null); else showOptionsStep();
+    });
+    document.getElementById("bw-times-go").addEventListener("click", function () { if (chosen) pickSlot(chosen.dateStr, chosen.slot); });
+    document.getElementById("bw-contact-edit").addEventListener("click", function () { stepForm.hidden = true; showContactStep("form"); });
+    document.getElementById("bw-done-btn").addEventListener("click", function () { window.location.assign("/"); });
+    document.getElementById("bw-upsell-on").addEventListener("change", function () {
+      var half = document.getElementById("bw-2h-half");
+      half.checked = this.checked;
+      half.dispatchEvent(new Event("change", { bubbles: true }));
+      renderOrder();
+    });
+    document.getElementById("bw-zip").addEventListener("input", function () { try { renderOrder(); renderSelectedSummary(); } catch (e) { /* follows the next change */ } });
+  }
+  initReserve();
+
   addWatchCard(document.getElementById("bw-step-gate"));
   addWatchCard(document.getElementById("bw-step-services"));
   loadMonth(viewYear, viewMonth);
