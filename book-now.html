@@ -2452,7 +2452,10 @@
   var slowFixed = {};  // "YYYY-MM-DD|service|beds|baths" -> cents the server said
   // Reserve-style flow (2026-11-04): the city (display and the route discount), the picked day and time, the route-efficient times the server
   // marked for that city ("YYYY-MM|duration|city" -> { day: { slot: true } }), the amount it takes off, and amounts it corrected at booking.
-  var selectedCity = "", pickedDay = null, chosen = null, routeByKey = {}, routeOffCents = 0, routeFixed = {};
+  var selectedCity = "", pickedDay = null, dayAuto = false, chosen = null, routeByKey = {}, routeOffCents = 0, routeFixed = {};
+  // Smart times (2026-11-04, SMART-TIMES.md): the server's minutes for a home ("service|beds|baths" -> { minutes, first, smart }) and whether it
+  // judges times by the clean's length and the drive (booking-availability `smart`). While it is off every number is today's.
+  var homeModel = {}, smartOn = false;
   // Pay by bank: the business offers "add the card fee you save to your crew's tip" (0676; booking-availability ?flags=1).
   var bankFeeTipOn = false;
 
@@ -2527,7 +2530,7 @@
   function dateStr(y, m, d) { return y + "-" + pad(m + 1) + "-" + pad(d); }
   function monthKey(y, m) { return y + "-" + pad(m + 1); }
   // Long jobs (past 2 h 30 min) need two back-to-back times, so their open times differ from a short job's: cache them apart.
-  function availKey(ym) { return ym + (currentDurationMinutes() > 150 ? "|L" : "|S") + "|" + (selectedCity || ""); }
+  function availKey(ym) { var mins = currentDurationMinutes(); return ym + (mins > 150 ? "|L" : "|S") + (smartOn ? "|" + mins : "") + "|" + (selectedCity || ""); }
   function monthName(m) {
     return ["January","February","March","April","May","June","July",
             "August","September","October","November","December"][m];
@@ -2620,6 +2623,7 @@
     if (req && note && !req.value) req.value = note;
 
     updatePricing();
+    homeMinutesFor(selectedBedrooms, selectedBathrooms, function () { updatePricing(); });
 
     stepGate.hidden = true;
     showServicesStep();
@@ -2847,6 +2851,7 @@
     gatePreview();
     syncDropdowns();
     updatePricing();
+    homeMinutesFor(selectedBedrooms, selectedBathrooms, function () { updatePricing(); });
     renderServiceTiles();
   }
   svcsBed.addEventListener("change", changeHomeSize);
@@ -2979,7 +2984,7 @@
   var wxPending = null;            // { key, qty } waiting on the too-long choice
   var wxView = "rooms", wxRoom = "kitchen", wxOpenKey = null, wxPopQty = 1;
   var DETAILING_SWITCH_MIN = CONFIG.SERVICES.four_hour.durationMinutes; // past four hours it is a Four Hour Home Detailing
-  var WX_VISIT_PERSON_MIN = (DETAILING_SWITCH_MIN - CONFIG.SERVICES.works.durationMinutes) * 2; // extra person-minutes one visit holds (102)
+  function wxVisitMin() { return (DETAILING_SWITCH_MIN - worksBase()) * 2; } // extra person-minutes one visit holds (102 at the 189 base)
   var WX_MAX_VISITS = 4;          // this visit and the next three (create-booking: MAX_PLANNED_VISITS = 3)
   // A first visit takes a few extras, not a list (Jack, 2026-10-18; _shared/firstVisit.ts FIRST_VISIT_MAX_EXTRAS). Counted in units.
   var WX_FIRST_VISIT_MAX = 3;
@@ -2997,8 +3002,26 @@
     return worksExtrasOrder.reduce(function (sum, k) { var x = extraByKey(k); return sum + (x && x.cents != null ? x.cents * (worksExtras[k] || 0) : 0); }, 0);
   }
   function wxCents(list) { return list.reduce(function (s, p) { var x = extraByKey(p.key); return s + (x && x.cents != null ? x.cents * p.qty : 0); }, 0); }
+  // The Checklist Clean's base minutes for the picked home: the server's model while smart times are on, else the page's 189.
+  function worksBase() {
+    var h = homeModel["works|" + selectedBedrooms + "|" + selectedBathrooms];
+    return h && h.smart ? h.minutes : CONFIG.SERVICES.works.durationMinutes;
+  }
+  function homeMinutesFor(beds, baths, then) {
+    var key = "works|" + beds + "|" + baths;
+    if (homeModel[key]) { if (then && !homeModel[key].pending) then(); return; }
+    homeModel[key] = { pending: true, smart: false };
+    fetch(CONFIG.AVAILABILITY_URL + "?org_slug=" + encodeURIComponent(CONFIG.ORG_SLUG) + "&home=1&service=works&beds=" + encodeURIComponent(beds) + "&baths=" + encodeURIComponent(baths))
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        homeModel[key] = d && d.ok ? { minutes: Number(d.minutes) || CONFIG.SERVICES.works.durationMinutes, first: Number(d.first_visit_minutes) || 0, smart: !!d.smart } : { smart: false };
+        if (homeModel[key].smart) smartOn = true;
+        if (then) then();
+      })
+      .catch(function () { homeModel[key] = { smart: false }; if (then) then(); });
+  }
   function wxPersonMin(list) { return list.reduce(function (s, p) { var x = extraByKey(p.key); return s + (x ? (Number(x.minutes) || 0) * p.qty : 0); }, 0); }
-  function wxClock(personMin) { return CONFIG.SERVICES.works.durationMinutes + Math.round(personMin / 2); }
+  function wxClock(personMin) { return worksBase() + Math.round(personMin / 2); }
   function wxList(map, order) { return order.filter(function (k) { return map[k] > 0; }).map(function (k) { return { key: k, qty: map[k] }; }); }
   // Extra time is for one technician; the crew is two, so it adds half on the clock (the same rule as create-booking).
   function worksMinutes() { return wxClock(wxPersonMin(wxList(worksExtras, worksExtrasOrder))); }
@@ -3015,7 +3038,7 @@
       for (var u = 0; u < (map[k] || 0); u++) {
         var placed = false;
         for (var i = 0; i < visits.length && !placed; i++) {
-          var fits = visits[i].used + m <= WX_VISIT_PERSON_MIN && (i > 0 || visits[i].units < firstCap) && (i === 0 || visits[i].cents + c <= budget);
+          var fits = visits[i].used + m <= wxVisitMin() && (i > 0 || visits[i].units < firstCap) && (i === 0 || visits[i].cents + c <= budget);
           if (fits) {
             visits[i].used += m; visits[i].units += 1; visits[i].cents += c;
             if (!visits[i].items[k]) visits[i].order.push(k);
@@ -3240,7 +3263,7 @@
   }
   function renderWxMeter() {
     var el = document.getElementById("bw-wx-meter");
-    var base = CONFIG.SERVICES.works.durationMinutes, cap = DETAILING_SWITCH_MIN;
+    var base = worksBase(), cap = DETAILING_SWITCH_MIN;
     var v1 = wxList(worksExtras, worksExtrasOrder);
     if (!wxWishOrder.length) { el.hidden = true; return; }
     el.hidden = false;
@@ -3450,11 +3473,11 @@
     hcItems().forEach(function (p) {
       if (hcOut[p[0]]) return;
       var x = extraByKey(p[0]), m = (Number(x.minutes) || 0) * p[1], c = x.cents * p[1];
-      if (m > WX_VISIT_PERSON_MIN || c > budget) return;
+      if (m > wxVisitMin() || c > budget) return;
       for (var i = 0; i < HC_MAX_VISITS; i++) {
         if (!visits[i]) visits[i] = { used: 0, cents: 0, units: 0, items: [] };
         var v = visits[i];
-        if (v.used + m <= WX_VISIT_PERSON_MIN && v.cents + c <= budget && (i > 0 || v.units + p[1] <= firstCap)) {
+        if (v.used + m <= wxVisitMin() && v.cents + c <= budget && (i > 0 || v.units + p[1] <= firstCap)) {
           v.used += m; v.cents += c; v.units += p[1]; v.items.push({ key: p[0], qty: p[1] }); return;
         }
       }
@@ -3821,7 +3844,11 @@
 
   function currentDurationMinutes() {
     if (isCatalogService()) return catalogQuote().minutes;
-    if (selectedService === "works") return worksMinutes(null, 0);
+    if (selectedService === "works") {
+      // While smart times are on, a first Checklist Clean is booked 10% longer (the visit factor), and availability has to judge that length.
+      var wm = worksMinutes(null, 0), hs = homeModel["works|" + selectedBedrooms + "|" + selectedBathrooms];
+      return hs && hs.smart && visitStatus !== "returning" ? Math.min(CONFIG.SERVICES.four_hour.durationMinutes, Math.round(wm * 1.1 / 5) * 5) : wm;
+    }
     if (nameRateOn() && !extraHalfOn()) return nameRate.minutes;
     return CONFIG.SERVICES[selectedService].durationMinutes + (extraHalfOn() && !nameRateOn() ? 30 : 0);
   }
@@ -4844,6 +4871,7 @@
         // Route-efficient times for the picked city (the server's `route`; empty while the discount is off): a pin instead of a dot.
         routeByKey[availKey(key)] = (data && data.route) || {};
         if (data && Number(data.route_off_cents) > 0) routeOffCents = Number(data.route_off_cents);
+        if (data && data.smart === true) smartOn = true;
         renderGrid();
         autoPickDay();
         if (!window.__bwBestLoaded) { window.__bwBestLoaded = true; loadBest(); }
@@ -4865,7 +4893,7 @@
     var box = document.getElementById("bw-best"), list = document.getElementById("bw-best-list");
     if (!box || !list) return;
     var t = new Date(), e = new Date(t.getTime() + 28 * 86400000);
-    var url = CONFIG.AVAILABILITY_URL + "?org_slug=" + encodeURIComponent(CONFIG.ORG_SLUG) + "&start=" + dateStr(t.getFullYear(), t.getMonth(), t.getDate()) + "&end=" + dateStr(e.getFullYear(), e.getMonth(), e.getDate()) + "&suggest=1&minutes=" + (currentDurationMinutes() || 0);
+    var url = CONFIG.AVAILABILITY_URL + "?org_slug=" + encodeURIComponent(CONFIG.ORG_SLUG) + "&start=" + dateStr(t.getFullYear(), t.getMonth(), t.getDate()) + "&end=" + dateStr(e.getFullYear(), e.getMonth(), e.getDate()) + "&suggest=1&minutes=" + (currentDurationMinutes() || 0) + (selectedCity ? "&city=" + encodeURIComponent(selectedCity) : "");
     fetch(url).then(function (r) { if (!r.ok) throw new Error("bad"); return r.json(); }).then(function (d) {
       var starts = CONFIG.SERVICES[selectedService] && CONFIG.SERVICES[selectedService].startSlots;
       var sug = ((d && d.suggested) || []).filter(function (x) { return !starts || starts.indexOf(x.slot) >= 0; });
@@ -5079,7 +5107,7 @@
   function pickSlot(dStr, slot) {
     releaseHold();
     calError.hidden = true;
-    holdApi({ action: "hold", date: dStr, slot: slot.key, minutes: currentDurationMinutes() || 0 })
+    holdApi({ action: "hold", date: dStr, slot: slot.key, minutes: currentDurationMinutes() || 0, city: selectedCity || undefined })
       .then(function (data) {
         if (data && data.ok) {
           hold = { id: data.hold_id, expiresAt: Date.parse(data.expires_at) || Date.now() + CONFIG.HOLD_MINUTES * 60000 };
@@ -5089,6 +5117,13 @@
           delete availabilityCache[availKey(dStr.slice(0, 7))];
           loadMonth(viewYear, viewMonth);
           calError.textContent = "That time was just taken. Please pick another.";
+          calError.hidden = false;
+        } else if (data && data.error === "time_not_workable") {
+          // Smart times: no team can make this one after its other visits and the drive. Refresh the day and let them pick again.
+          chosen = null;
+          delete availabilityCache[availKey(dStr.slice(0, 7))];
+          loadMonth(viewYear, viewMonth);
+          calError.textContent = "That time does not fit our team's day for your address. Please pick another.";
           calError.hidden = false;
         } else {
           // Holding is a convenience; if it is unavailable, carry on (the server still checks the time when booking).
@@ -5345,6 +5380,8 @@
             ? "That time was just booked by someone else — please pick another."
             : data && data.error === "recurring_consent_required"
               ? "Please check the box to agree to the charges for your recurring plan."
+            : data && data.error === "time_not_workable"
+              ? "That time does not fit our team's day for your address. Nothing was charged: go back and pick another time."
             : data && data.error === "booking_blocked"
               ? "We can't book this online. Please call or text us."
             : data && data.error === "bad_gift_code"
@@ -5480,6 +5517,7 @@
           throw new Error(
             code === "too_soon" ? "A first clean needs 48 hours' notice. Please pick a later day." : code === "same_day_closed" ? "Same-day times close 1 hour before they start. Please pick a later time or text us." : code === "holiday_closed" ? "We're closed for the holiday that day. Please pick another day." : code === "too_far" ? "We book up to 8 weeks ahead. Please pick an earlier day." :
             code === "slot_taken" ? "That time was just taken and your card was not charged. Please pick another time." :
+            code === "time_not_workable" ? "That time does not fit our team's day for your address, and your card was not charged. Please pick another time." :
             code === "payment_not_confirmed" ? "Your payment didn't go through. Please check your card and try again." :
             "Your card went through, but we couldn't lock in this time. We'll text you shortly to set it up. Please don't book again.");
         }
@@ -5990,7 +6028,9 @@
     var el = document.getElementById("bw-est");
     if (!el) return;
     var fits = twoHourFits();
-    var works = CONFIG.SERVICES.works.durationMinutes;
+    var hk = "works|" + gateBedroomSelect.value + "|" + gateBathroomSelect.value, hmod = homeModel[hk];
+    if (!hmod) homeMinutesFor(gateBedroomSelect.value, gateBathroomSelect.value, renderEstimate);
+    var works = hmod && hmod.smart ? hmod.minutes : CONFIG.SERVICES.works.durationMinutes;
     document.getElementById("bw-est-name").textContent = fits ? "Two Hour Clean" : "The Checklist Clean";
     document.getElementById("bw-est-time").textContent = fits ? "2 hr" : "About " + hm(works);
     document.getElementById("bw-est-crew").textContent = "2 maids";
@@ -6001,7 +6041,7 @@
       : homeLabel() + " is more than two hours covers (up to 4 bedrooms and 2½ baths). The Checklist Clean works through every room and takes the time it takes.";
     var cond = (document.getElementById("bw-gate-condition") || {}).value || "kept";
     if (cond !== "kept" && fits) why += " Since your home is " + CONDITION_TEXT[cond] + ", we will suggest an extra half hour before you pay. Your price stays flat.";
-    document.getElementById("bw-est-why").textContent = why;
+    document.getElementById("bw-est-why").textContent = why + " We arrive in a 30 minute window.";
   }
   function suggestedService() { return twoHourFits() ? "two_hour" : "works"; }
 
@@ -6074,8 +6114,8 @@
     var cell = grid.querySelectorAll(".bw-cell:not(.bw-cell-blank)")[Number(pickedDay.slice(8, 10)) - 1];
     if (cell) cell.classList.add("bw-cell-on");
   }
-  function pickDay(dStr) {
-    pickedDay = dStr;
+  function pickDay(dStr, auto) {
+    pickedDay = dStr; dayAuto = !!auto; // a day the page picked moves on when it fills up; one the customer picked stays (a full day offers the waitlist)
     if (chosen && chosen.dateStr !== dStr) chosen = null;
     syncDateBtn(); markPickedCell(); renderTimes();
   }
@@ -6086,12 +6126,12 @@
   }
   // The first day with an open time, picked for them (the Reserve flow opens on "Today"), once the month has loaded.
   function autoPickDay() {
-    if (pickedDay) return;
+    if (pickedDay && (!dayAuto || CONFIG.SLOTS.some(function (s) { return slotIsAvailable(pickedDay, s.key); }))) return;
     var days = new Date(viewYear, viewMonth + 1, 0).getDate();
     for (var d = 1; d <= days; d++) {
       var cd = new Date(viewYear, viewMonth, d), dStr = dateStr(viewYear, viewMonth, d);
       if (cd < today || holidayClosed[dStr] || !isOpenWeekday(viewYear, viewMonth, d)) continue;
-      if (CONFIG.SLOTS.some(function (s) { return slotIsAvailable(dStr, s.key); })) { pickDay(dStr); return; }
+      if (CONFIG.SLOTS.some(function (s) { return slotIsAvailable(dStr, s.key); })) { pickDay(dStr, true); return; }
     }
   }
   var PIN_SVG = "<svg class='bw-pin' viewBox='0 0 24 24' aria-hidden='true'><path d='M12 2.5c-3.6 0-6.5 2.8-6.5 6.4 0 4.7 6.5 12.6 6.5 12.6s6.5-7.9 6.5-12.6c0-3.6-2.9-6.4-6.5-6.4z'/><circle cx='12' cy='9' r='2.4'/></svg>";
@@ -6114,6 +6154,8 @@
     var legendRoute = document.querySelector(".bw-legend-route");
     if (legendRoute) { legendRoute.hidden = !(routeKnown && selectedCity); document.getElementById("bw-legend-route-text").textContent = formatPrice(routeOffCents).replace(/\.00$/, "") + " off"; }
     if (!pickedDay) { note.textContent = "Pick a date to see open times."; go.disabled = true; return; }
+    // Smart times judge each time by the drive from the team's last house, so they need the city first.
+    if (smartOn && !selectedCity) { note.textContent = "Choose your city first, so we show only the times a team can really make."; go.disabled = true; return; }
     var slowOff = slowOffOn(pickedDay);
     CONFIG.SLOTS.forEach(function (slot) {
       var b = document.createElement("button");
@@ -6163,7 +6205,7 @@
     } else if (slowOff > 0) {
       note.textContent = "Slow day: " + formatPrice(slowOff) + " off this clean (one-time bookings; one discount per booking).";
     } else {
-      note.textContent = currentDurationMinutes() > TWO_TIME_OVER_MIN ? "A clean this long needs two back-to-back times, so fewer start times show." : "Pick a time. Arrival is a 30 minute window.";
+      note.textContent = currentDurationMinutes() > TWO_TIME_OVER_MIN ? "A clean this long needs two back-to-back times, so fewer start times show." : (smartOn ? "These times fit the clean and the drive between homes. " : "Pick a time. ") + "Arrival is a 30 minute window.";
     }
   }
 
