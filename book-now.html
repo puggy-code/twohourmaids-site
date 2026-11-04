@@ -1245,7 +1245,7 @@
           <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="13" r="8" stroke="currentColor" stroke-width="1.6"/><path d="M12 9v4l3 2" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 2h6" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
         </span>
         <span class="bw-svc-name">Two Hour Clean</span>
-        <span class="bw-svc-sub">Our best value</span>
+        <span class="bw-svc-sub">Two maids, two hours</span>
       </button>
       
       <button type="button" class="bw-svc-btn" data-service="works">
@@ -1739,7 +1739,7 @@
       <summary><span class="bw-cat-name">House cleaning</span><span class="bw-cat-sub">Two Hour Clean and Checklist Clean</span></summary>
       <div class="bw-cat-body">
         <article class="bw-menu-svc">
-          <h4>Two Hour Clean <span>Our best value</span></h4>
+          <h4>Two Hour Clean <span>Two maids, two hours</span></h4>
           <p>Flat rate, for a well-kept average home.</p>
           <details class="bw-view-checklist"><summary>View our checklist</summary>
             <div id="bw-menu-checklist" class="bw-rooms"></div>
@@ -2194,7 +2194,7 @@
   // ---------- Select services (white tiles) ----------
   var stepServices = document.getElementById("bw-step-services");
   var SERVICE_COPY = {
-    two_hour: { time: "2 hrs \u00b7 best value", desc: "Our lowest price: two hours, one flat rate. Built for a well-kept, average-size home." },
+    two_hour: { time: "2 hrs \u00b7 2 maids", desc: "Two maids, two hours, one flat rate. Built for a well-kept, average-size home." },
     works: { time: "Untimed \u00b7 every room", desc: "Our standard checklist, completed in every room of your home. We stay until the whole home is done." },
     checklist_clean: { time: "Untimed \u00b7 every room", desc: "Our standard checklist in every room, at the level you choose, plus any extras you pick." },
     four_hour: { time: "4 hrs", desc: "The standard checklist first, then the detailing you choose, in the order you rank it." }
@@ -2224,7 +2224,8 @@
   // features on the left; a savings pill, the big price, "per visit", details and the button on the right. Every line is true for the
   // service (no refund or tax claims we do not make).
   var SERVICE_FEATURES = {
-    two_hour: { highlight: "Best value", sub: "2 maids, about 2 hours", feats: ["Standard checklist", "For well-kept homes"], info: true }, // cus-0003
+    // Plain facts only, never a ranking claim we have no data for (Jack, 2026-11-04; the website test checks the whole form).
+    two_hour: { highlight: "Two maids, two hours", sub: "One flat rate", feats: ["Standard checklist", "For well-kept homes"], info: true }, // cus-0003
     works: { highlight: "Every room", sub: "Priced by home size", feats: ["Full checklist, every room", "Add extras"] },
     checklist_clean: { highlight: "Every room, untimed", sub: "Priced by level", feats: ["Our full checklist in every room", "Choose your level and extras", "Free to reschedule"] },
     four_hour: { highlight: "Your list, ranked", sub: "9:00 to 1:30", feats: ["Full clean first", "Then your detailing list", "After your first clean"] } // prc-0344
