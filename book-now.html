@@ -663,12 +663,13 @@
 
   /* ================================================================================================================================
      Booking flow theme (Jack, 2026-10-17: "white and blue finish ... modern and pretty ... clean up the font ... make the colors pop").
-     One font, Work Sans (the one Jack picked for the calendar), in a few weights. White cards, one confident blue, green for savings,
+     One font, Work Sans (the one Jack picked for the calendar), in a few weights. White cards, one confident blue (white on it 5.1:1),
+     green for savings (#0B7A54, 5.3:1 on white; was #0E8A5F, 4.4:1: round F, Jack's "easier to read" pick, 2026-11-03),
      red only for the strike-through. This layer sits last and wins over the older rules above.
      ================================================================================================================================ */
   #bw-root {
     --t-ink: #0B1A33; --t-ink-2: #3D4B63; --t-muted: #6B7790; --t-line: #E3E9F3; --t-soft: #F3F7FE;
-    --t-blue: #1F5EFF; --t-blue-ink: #1546C8; --t-blue-soft: #E9F0FF; --t-green: #0E8A5F; --t-green-soft: #E6F6EF; --t-red: #E5484D;
+    --t-blue: #1F5EFF; --t-blue-ink: #1546C8; --t-blue-soft: #E9F0FF; --t-green: #0B7A54; --t-green-soft: #E6F6EF; --t-red: #E5484D;
     --t-shadow: 0 1px 2px rgba(11,26,51,.06), 0 8px 24px -12px rgba(11,26,51,.18);
     --bw-ink: var(--t-ink); --bw-muted: var(--t-muted); --bw-hairline: var(--t-line); --bw-accent: var(--t-blue); --bw-accent-ink: var(--t-blue-ink);
     --bw-navy: var(--t-ink); --bw-green: var(--t-green); --bw-red: var(--t-red); --bw-paper: var(--t-soft);
@@ -991,7 +992,7 @@
   #bw-root .bw-hs { position: absolute; transform: translate(-50%, -50%); width: 22px; height: 22px; padding: 0; border-radius: 50%; border: 2px solid #fff; background: var(--t-blue); color: #fff; font-size: 14px; font-weight: 700; line-height: 1; cursor: pointer; box-shadow: 0 2px 6px rgba(31,94,255,.45); display: flex; align-items: center; justify-content: center; transition: transform .15s; }
   #bw-root .bw-hs::after { content: ""; position: absolute; inset: -5px; border-radius: 50%; border: 1.5px solid var(--t-blue); opacity: 0; animation: bw-hs-pulse 2.4s ease-out infinite; pointer-events: none; }
   #bw-root .bw-hs:hover, #bw-root .bw-hs.is-open { transform: translate(-50%, -50%) scale(1.18); }
-  #bw-root .bw-hs.is-on { background: var(--t-green); box-shadow: 0 2px 6px rgba(14,138,95,.45); font-size: 13px; }
+  #bw-root .bw-hs.is-on { background: var(--t-green); box-shadow: 0 2px 6px rgba(11,122,84,.45); font-size: 13px; }
   #bw-root .bw-hs.is-on::after { animation: none; }
   #bw-root .bw-hs.bw-hs-no { background: #fff; color: #B4232C; border-color: #E8B4B4; box-shadow: 0 2px 6px rgba(180,35,44,.25); font-size: 16px; }
   #bw-root .bw-hs.bw-hs-no::after { animation: none; }
