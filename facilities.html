@@ -193,11 +193,10 @@
       if (!g('jf-role') || !g('jf-j1') || !g('jf-school') || !g('jf-auth') || !g('jf-adult') || !g('jf-lift')) { out.textContent = msg('all'); return; }
       if (g('jf-adult') !== 'yes') { out.textContent = msg('adult'); return; }
       btn.disabled = true; out.textContent = msg('sending');
-      var roleText = roleSel.options[roleSel.selectedIndex].text;
       fetch(jf.getAttribute('data-endpoint'), { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({
         kind: 'applicant', org_slug: jf.getAttribute('data-org'), name: g('jf-name'), phone: g('jf-phone'), email: g('jf-email'),
         jobs: [g('jf-j1'), g('jf-j2'), g('jf-j3')], education: g('jf-school'), authorized: g('jf-auth') === 'yes', can_lift: g('jf-lift') === 'yes',
-        availability: (roleText + ': ' + g('jf-av')).slice(0, 300), how_heard: (g('jf-heard') + (utm ? ' (' + utm + ')' : '')).trim().slice(0, 120),
+        availability: g('jf-av'), how_heard: g('jf-heard'),
         role: g('jf-role'), utm: utm, lang: jf.getAttribute('data-lang'), website: g('jf-website') }) })
         .then(function (r) {
           if (!r.ok) throw new Error('status ' + r.status);

@@ -54,7 +54,7 @@
 
 <section class="sec soft"><div class="wrap narrow">
   <h2>Become a partner</h2>
-  <form class="partner-form" data-endpoint="" data-org="two-hour-maids" novalidate>
+  <form class="partner-form" data-endpoint="https://isbhlmihbibdnajvicrj.supabase.co/functions/v1/lead-capture" data-org="two-hour-maids" novalidate>
     <label for="pf-name">Your name</label><input id="pf-name" name="name" autocomplete="name">
     <label for="pf-company">Company</label><input id="pf-company" name="company" autocomplete="organization">
     <label for="pf-role">You are a</label><select id="pf-role" name="role"><option>Realtor</option><option>Property manager</option><option>Mover</option><option>Other</option></select>
@@ -62,8 +62,8 @@
     <label for="pf-email">Email</label><input id="pf-email" name="email" type="email" autocomplete="email">
     <label for="pf-notes">How can we help? (optional)</label><textarea id="pf-notes" name="notes" rows="3" maxlength="500"></textarea>
     <input class="hp" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
-    <button type="submit" class="btn" disabled>Send</button>
-    <p class="pf-out" role="status" aria-live="polite">Online sign-up opens soon. For now, call or text <a href="tel:+17632279124">(763) 227-9124</a>, or email <a href="mailto:Owner@TwoHourMaids.com">Owner@TwoHourMaids.com</a>.</p>
+    <button type="submit" class="btn">Send</button>
+    <p class="pf-out" role="status" aria-live="polite"></p>
   </form>
 </div></section>
 </main>
@@ -184,11 +184,10 @@
       if (!g('jf-role') || !g('jf-j1') || !g('jf-school') || !g('jf-auth') || !g('jf-adult') || !g('jf-lift')) { out.textContent = msg('all'); return; }
       if (g('jf-adult') !== 'yes') { out.textContent = msg('adult'); return; }
       btn.disabled = true; out.textContent = msg('sending');
-      var roleText = roleSel.options[roleSel.selectedIndex].text;
       fetch(jf.getAttribute('data-endpoint'), { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({
         kind: 'applicant', org_slug: jf.getAttribute('data-org'), name: g('jf-name'), phone: g('jf-phone'), email: g('jf-email'),
         jobs: [g('jf-j1'), g('jf-j2'), g('jf-j3')], education: g('jf-school'), authorized: g('jf-auth') === 'yes', can_lift: g('jf-lift') === 'yes',
-        availability: (roleText + ': ' + g('jf-av')).slice(0, 300), how_heard: (g('jf-heard') + (utm ? ' (' + utm + ')' : '')).trim().slice(0, 120),
+        availability: g('jf-av'), how_heard: g('jf-heard'),
         role: g('jf-role'), utm: utm, lang: jf.getAttribute('data-lang'), website: g('jf-website') }) })
         .then(function (r) {
           if (!r.ok) throw new Error('status ' + r.status);
