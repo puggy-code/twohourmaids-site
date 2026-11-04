@@ -40,8 +40,7 @@
   </div>
   <div class="wrap hero-in">
     <h1><span class="h1-kw">House cleaning in Minneapolis &middot; St. Paul</span> <span class="s">Two Hour Maids</span></h1>
-    <p class="hero-sub">One flat price.</p>
-    <ul class="vp"><li><svg class="ico" viewBox="0 0 48 48" width="48" height="48" aria-hidden="true" focusable="false"><rect x="8" y="10" width="32" height="30" rx="3"/><path d="M8 18h32M16 6v8M32 6v8"/></svg><span>Book it when you need it.</span></li><li><svg class="ico" viewBox="0 0 48 48" width="48" height="48" aria-hidden="true" focusable="false"><rect x="11" y="22" width="26" height="19" rx="3"/><path d="M17 22v-7a7 7 0 0113.5-2.6M24 29v5"/></svg><span>No contracts, never locked in.</span></li><li><svg class="ico" viewBox="0 0 48 48" width="48" height="48" aria-hidden="true" focusable="false"><rect x="11" y="7" width="26" height="34" rx="3"/><path d="M17 19l3 3 7-7M17 30h14M17 35h9"/></svg><span>A photo report after every visit.</span></li><li><svg class="ico" viewBox="0 0 48 48" width="48" height="48" aria-hidden="true" focusable="false"><path d="M24 6l16 6v10c0 10-7 18-16 20C15 40 8 32 8 22V12z"/><path d="M17 24l5 5 9-9"/></svg><span>Trained, insured, background-checked staff</span></li></ul>
+    <ul class="vp"><li><svg class="ico" viewBox="0 0 48 48" width="48" height="48" aria-hidden="true" focusable="false"><rect x="8" y="10" width="32" height="30" rx="3"/><path d="M8 18h32M16 6v8M32 6v8"/></svg><span>Book it when you need it.</span></li><li><svg class="ico" viewBox="0 0 48 48" width="48" height="48" aria-hidden="true" focusable="false"><rect x="11" y="22" width="26" height="19" rx="3"/><path d="M17 22v-7a7 7 0 0113.5-2.6M24 29v5"/></svg><span>No contracts, never locked in.</span></li><li><svg class="ico" viewBox="0 0 48 48" width="48" height="48" aria-hidden="true" focusable="false"><rect x="11" y="7" width="26" height="34" rx="3"/><path d="M17 19l3 3 7-7M17 30h14M17 35h9"/></svg><span>A photo report after every visit.</span></li><li><svg class="ico" viewBox="0 0 48 48" width="48" height="48" aria-hidden="true" focusable="false"><path d="M24 6l16 6v10c0 10-7 18-16 20C15 40 8 32 8 22V12z"/><path d="M17 24l5 5 9-9"/></svg><span>Trained, insured, background-checked</span></li></ul>
     <a class="btn big-btn" href="/twohourmaids-site/book-now">Book now</a>
     <div class="quick-times" data-quick-times="https://isbhlmihbibdnajvicrj.supabase.co/functions/v1/agent-availability?city=minneapolis&amp;service=two_hour&amp;days=14" aria-live="polite"></div>
   </div>
@@ -218,7 +217,8 @@
     fetch(box.getAttribute('data-quick-times')).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
       clearTimeout(timer);
       if (late || !d || !d.times || !d.times.length) return;
-      var label = document.createElement('p'); label.className = 'quick-label'; label.textContent = 'Or pick a time for a Two Hour Clean:'; box.appendChild(label);
+      if (box.closest && box.closest('.hero-in')) { box.setAttribute('role', 'group'); box.setAttribute('aria-label', 'Open times for a Two Hour Clean'); }
+      else { var label = document.createElement('p'); label.className = 'quick-label'; label.textContent = 'Or pick a time for a Two Hour Clean:'; box.appendChild(label); }
       var row = document.createElement('div'); row.className = 'quick-row'; box.appendChild(row);
       d.times.slice(0, 3).forEach(function (t) {
         var p = new URL(t.book_url).searchParams, a = document.createElement('a');

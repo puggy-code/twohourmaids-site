@@ -187,7 +187,8 @@
     fetch(box.getAttribute('data-quick-times')).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
       clearTimeout(timer);
       if (late || !d || !d.times || !d.times.length) return;
-      var label = document.createElement('p'); label.className = 'quick-label'; label.textContent = 'Or pick a time for a Two Hour Clean:'; box.appendChild(label);
+      if (box.closest && box.closest('.hero-in')) { box.setAttribute('role', 'group'); box.setAttribute('aria-label', 'Open times for a Two Hour Clean'); }
+      else { var label = document.createElement('p'); label.className = 'quick-label'; label.textContent = 'Or pick a time for a Two Hour Clean:'; box.appendChild(label); }
       var row = document.createElement('div'); row.className = 'quick-row'; box.appendChild(row);
       d.times.slice(0, 3).forEach(function (t) {
         var p = new URL(t.book_url).searchParams, a = document.createElement('a');
