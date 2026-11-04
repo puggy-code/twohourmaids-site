@@ -1369,6 +1369,12 @@
   #bw-root .bw-upsell.is-rec { border-color: #248046; box-shadow: 0 0 0 1px #248046 inset; }
   #bw-root .bw-upsell-tag { justify-self: start; padding: 4px 10px; border-radius: 999px; background: var(--t-green-soft); color: #137333; font: 700 .75rem var(--mac-font); }
   #bw-root .bw-upsell-tag[hidden] { display: none !important; }
+  #bw-root .bw-upsell-opts { display: grid; grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr)); gap: 8px; }
+  #bw-root .bw-upsell-opt { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 2px; min-height: 56px; padding: 8px 14px; text-align: left; border: 1px solid var(--t-line); border-radius: 10px; background: #fff; cursor: pointer; font: 400 1rem var(--mac-font); color: var(--t-ink); }
+  #bw-root .bw-upsell-opt[hidden] { display: none !important; }
+  #bw-root .bw-upsell-opt b { font-weight: 500; }
+  #bw-root .bw-upsell-opt em { font-style: normal; font-weight: 700; }
+  #bw-root .bw-upsell-opt.is-on { border-color: #248046; background: #e6f4ea; box-shadow: 0 0 0 1px #248046 inset; color: #0f5132; }
   #bw-root .bw-upsell-row { display: flex; align-items: center; gap: 12px; cursor: pointer; }
   #bw-root .bw-upsell-row input { flex: none; width: 22px; height: 22px; accent-color: #248046; }
   #bw-root .bw-upsell-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
@@ -2076,11 +2082,11 @@
       <div id="bw-sheet" class="bw-sheet">
         <div id="bw-upsell" class="bw-upsell" hidden>
           <span class="bw-upsell-tag" id="bw-upsell-tag" hidden>Recommended for your home</span>
-          <label class="bw-upsell-row">
-            <input type="checkbox" id="bw-upsell-on">
-            <span class="bw-upsell-text"><b>Add an extra half hour</b><small id="bw-upsell-why"></small></span>
-            <em id="bw-upsell-price"></em>
-          </label>
+          <div class="bw-upsell-text"><b>Add more time</b><small id="bw-upsell-why"></small></div>
+          <div class="bw-upsell-opts" role="radiogroup" aria-label="Extra time">
+            <button type="button" class="bw-upsell-opt" data-n="1" role="radio" aria-checked="false"><b>+30 min</b><em id="bw-upsell-price1"></em></button>
+            <button type="button" class="bw-upsell-opt" data-n="2" role="radio" aria-checked="false" hidden><b>+60 min</b><em id="bw-upsell-price2"></em></button>
+          </div>
         </div>
         <div id="bw-sheet-plans" class="bw-sheet-plans" hidden>
           <div class="bw-sheet-head">Choose a plan</div>
@@ -2265,6 +2271,8 @@
     // The booking page's "No photos in my home, please" box (cus-0026): on once create-booking stores photos_opt_out on the customer
     // (customers.photos_opt_out, the field the account page switches). Off: the box stays hidden and the notice points to the account page.
     PHOTO_OPT_OUT_LIVE: false,
+    // The +60 minutes step ($80, extra_half_hours 2) in the checkout sheet: turned on once create-booking takes 2 (server work in progress, 2026-11-04).
+    EXTRA_HOUR_LIVE: false,
     BANK_DISCOUNT_CENTS: 0,
 
     BUSINESS_PHONE: "+17632279124", // (763) 227-9124, the one company number everywhere (Jack, 2026-11-02); was the 230-6795 texting line
@@ -3696,11 +3704,21 @@
            (bathroom ? bathroom.addOnCents : 0);
   }
 
-  var EXTRA_HALF_CENTS = 4000, extraHalf = false; // the server prices it again (create-booking extra_half_hours)
-  function extraHalfOn() { return selectedService === "two_hour" && extraHalf; }
+  // Extra time on the Two Hour Clean (Jack, 2026-11-04): +30 minutes for $40 (extra_half_hours 1) and +60 minutes for $80 (2); the clean's own
+  // price stays flat. The server prices it again (create-booking extra_half_hours); the +60 step waits for CONFIG.EXTRA_HOUR_LIVE.
+  var EXTRA_HALF_CENTS = 4000, extraHalf = 0;
+  function extraHalfOn() { return selectedService === "two_hour" && extraHalf > 0; }
+  function extraHalfN() { return extraHalfOn() ? extraHalf : 0; }
+  function setExtraHalf(n) {
+    extraHalf = n;
+    var legacy = document.getElementById("bw-2h-half"); if (legacy) legacy.checked = n > 0;
+    updatePricing();
+    updateTipUi();
+    try { if (selected) renderSelectedSummary(); } catch (e) { /* the summary follows the next change */ }
+  }
   function subtotalCents() {
     if (isCatalogService()) return catalogQuote().total;
-    if (selectedService === "two_hour") return CONFIG.BASE_PRICE_CENTS + (extraHalfOn() ? EXTRA_HALF_CENTS : 0);
+    if (selectedService === "two_hour") return CONFIG.BASE_PRICE_CENTS + extraHalfN() * EXTRA_HALF_CENTS;
     if (selectedService === "works" && hcOn) return hcPriceCents() + glassCents();
     if (selectedService === "works") return CONFIG.BASE_PRICE_CENTS + customCleanAddOnsCents() + worksExtrasCents() + glassCents();
     if (selectedService === "four_hour") return CONFIG.SERVICES.four_hour.oneTimeCents;
@@ -3852,7 +3870,7 @@
   function nameRateOn() { return !!nameRate && selectedService === "two_hour" && selectedFrequency !== "one_time"; }
   function priceForFrequency(freq) {
     if (nameRateOn() && freq !== "one_time") return extraHalfOn() ? Math.max(0, rawPriceForFrequency(freq) - EXTRA_HALF_CENTS) : nameRate.price_cents;
-    if (promoAppliesFor(freq)) return CONFIG.PROMO_CODES[currentPromoCode()].priceCents + (extraHalfOn() ? EXTRA_HALF_CENTS : 0);
+    if (promoAppliesFor(freq)) return CONFIG.PROMO_CODES[currentPromoCode()].priceCents + extraHalfN() * EXTRA_HALF_CENTS;
     var raw = rawPriceForFrequency(freq);
     var t = priceTest();
     if (t && priceArm(t) === 'B' && raw > 0) return Math.round(raw * (1 + Number(t.uplift_pct) / 100) / 100) * 100;
@@ -3867,7 +3885,7 @@
       return hs && hs.smart && visitStatus !== "returning" ? Math.min(CONFIG.SERVICES.four_hour.durationMinutes, Math.round(wm * 1.1 / 5) * 5) : wm;
     }
     if (nameRateOn() && !extraHalfOn()) return nameRate.minutes;
-    return CONFIG.SERVICES[selectedService].durationMinutes + (extraHalfOn() && !nameRateOn() ? 30 : 0);
+    return CONFIG.SERVICES[selectedService].durationMinutes + (!nameRateOn() ? 30 * extraHalfN() : 0);
   }
 
   function describeCustomClean() {
@@ -4047,7 +4065,7 @@
     document.getElementById("bw-2h-prio").hidden = selectedService !== "two_hour";
     paintTwoHourCap();
     document.getElementById("bw-half-wrap").hidden = selectedService !== "two_hour";
-    if (selectedService !== "two_hour" && extraHalf) { extraHalf = false; document.getElementById("bw-2h-half").checked = false; }
+    if (selectedService !== "two_hour" && extraHalf) { extraHalf = 0; document.getElementById("bw-2h-half").checked = false; }
     customFieldsWrap.hidden = selectedService !== "works";
     promoWrap.hidden = selectedService !== "two_hour";
     if (selectedService !== "two_hour") promoNote.hidden = true;
@@ -4853,11 +4871,7 @@
   document.getElementById("bw-name").addEventListener("blur", checkNameCode);
   freqSelect.addEventListener("change", checkNameCode);
   // 150 minutes fits the same booking time as 120, so the held time stays; only the price and length change.
-  document.getElementById("bw-2h-half").addEventListener("change", function () {
-    extraHalf = this.checked;
-    updatePricing();
-    updateTipUi();
-  });
+  document.getElementById("bw-2h-half").addEventListener("change", function () { setExtraHalf(this.checked ? 1 : 0); });
 
   // ---------- fetch availability for the visible month ----------
   function loadMonth(y, m) {
@@ -5312,7 +5326,7 @@
       home_care: selectedService === "works" && hcOn,
       home_care_visits: selectedService === "works" && hcOn ? hcRotation() : null,
       duration_minutes: currentDurationMinutes(),
-      extra_half_hours: extraHalfOn() ? 1 : 0,
+      extra_half_hours: extraHalfN(),
       bedrooms: selectedService === "works" || selectedService === "four_hour" ? selectedBedrooms : null,
       bathrooms: selectedService === "works" || selectedService === "four_hour" ? selectedBathrooms : null,
       frequency: selectedFrequency,
@@ -6287,9 +6301,13 @@
     var rec = cond !== "kept";
     document.getElementById("bw-upsell-tag").hidden = !rec;
     document.getElementById("bw-upsell-tag").textContent = cond === "dirty" ? "Recommended: your home is really dirty" : "Recommended: it has been a while";
-    document.getElementById("bw-upsell-why").textContent = (rec ? "30 more minutes for the team, so they can get to more of the home. " : "30 more minutes for the team (2½ hours in all). ") + "Your price stays flat.";
-    document.getElementById("bw-upsell-price").textContent = "+" + wholeDollars(formatPrice(EXTRA_HALF_CENTS));
-    document.getElementById("bw-upsell-on").checked = !!(half && half.checked);
+    var hourOn = !!CONFIG.EXTRA_HOUR_LIVE;
+    document.getElementById("bw-upsell-why").textContent = (rec ? "More minutes for the team, so they can get to more of the home. " : "More minutes for the team. ") + "The price of your clean stays flat. Tap again to remove.";
+    document.getElementById("bw-upsell-price1").textContent = "+" + wholeDollars(formatPrice(EXTRA_HALF_CENTS));
+    document.getElementById("bw-upsell-price2").textContent = "+" + wholeDollars(formatPrice(EXTRA_HALF_CENTS * 2));
+    var opt2 = up.querySelector('.bw-upsell-opt[data-n="2"]'); opt2.hidden = !hourOn;
+    if (!hourOn && extraHalf > 1) extraHalf = 1;
+    Array.prototype.forEach.call(up.querySelectorAll(".bw-upsell-opt"), function (b) { var on = Number(b.getAttribute("data-n")) === extraHalfN(); b.classList.toggle("is-on", on); b.setAttribute("aria-checked", on ? "true" : "false"); });
     up.classList.toggle("is-rec", rec);
   }
 
@@ -6394,11 +6412,12 @@
     document.getElementById("bw-times-go").addEventListener("click", function () { if (chosen) pickSlot(chosen.dateStr, chosen.slot); });
     document.getElementById("bw-contact-edit").addEventListener("click", function () { stepForm.hidden = true; showContactStep("form"); });
     document.getElementById("bw-done-btn").addEventListener("click", function () { window.location.assign("/"); });
-    document.getElementById("bw-upsell-on").addEventListener("change", function () {
-      var half = document.getElementById("bw-2h-half");
-      half.checked = this.checked;
-      half.dispatchEvent(new Event("change", { bubbles: true }));
-      renderOrder();
+    Array.prototype.forEach.call(document.querySelectorAll(".bw-upsell-opt"), function (b) {
+      b.addEventListener("click", function () {
+        var n = Number(b.getAttribute("data-n"));
+        setExtraHalf(extraHalfN() === n ? 0 : n); // tap the same one again to remove it
+        renderOrder();
+      });
     });
     document.getElementById("bw-zip").addEventListener("input", function () { try { renderOrder(); renderSelectedSummary(); } catch (e) { /* follows the next change */ } });
   }
