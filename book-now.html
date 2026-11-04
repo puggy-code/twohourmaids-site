@@ -1124,6 +1124,8 @@
   #bw-root .bw-photo-note summary::-webkit-details-marker { display: none; }
   #bw-root .bw-info { display: inline-grid; place-items: center; width: 17px; height: 17px; border-radius: 50%; border: 1.5px solid currentColor; font: 700 11px/1 Georgia, serif; }
   #bw-root .bw-photo-note p { margin: 6px 0 0; line-height: 1.5; color: var(--t-ink-2); }
+  /* The Home Care Plan card under the frequency choice (cus-0022) */
+  #bw-root .bw-hc-wrap { margin: 12px 0 4px; }
 </style>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Service","name":"House cleaning","serviceType":"House cleaning","description":"Book a Two Hour Clean or a Checklist Clean online.","provider":{"@id":"https://www.twohourmaids.com/#business"},"areaServed":[{"@type":"City","name":"Apple Valley, MN"},{"@type":"City","name":"Blaine, MN"},{"@type":"City","name":"Bloomington, MN"},{"@type":"City","name":"Brooklyn Center, MN"},{"@type":"City","name":"Brooklyn Park, MN"},{"@type":"City","name":"Champlin, MN"},{"@type":"City","name":"Chanhassen, MN"},{"@type":"City","name":"Chaska, MN"},{"@type":"City","name":"Columbia Heights, MN"},{"@type":"City","name":"Coon Rapids, MN"},{"@type":"City","name":"Crystal, MN"},{"@type":"City","name":"Dayton, MN"},{"@type":"City","name":"Eagan, MN"},{"@type":"City","name":"Eden Prairie, MN"},{"@type":"City","name":"Edina, MN"},{"@type":"City","name":"Excelsior, MN"},{"@type":"City","name":"Fridley, MN"},{"@type":"City","name":"Golden Valley, MN"},{"@type":"City","name":"Hanover, MN"},{"@type":"City","name":"Hopkins, MN"},{"@type":"City","name":"Long Lake, MN"},{"@type":"City","name":"Loretto, MN"},{"@type":"City","name":"Maple Grove, MN"},{"@type":"City","name":"Maple Plain, MN"},{"@type":"City","name":"Maplewood, MN"},{"@type":"City","name":"Medina, MN"},{"@type":"City","name":"Mendota Heights, MN"},{"@type":"City","name":"Minneapolis, MN"},{"@type":"City","name":"Minnetonka, MN"},{"@type":"City","name":"Mound, MN"},{"@type":"City","name":"Navarre, MN"},{"@type":"City","name":"New Brighton, MN"},{"@type":"City","name":"Oakdale, MN"},{"@type":"City","name":"Plymouth, MN"},{"@type":"City","name":"Richfield, MN"},{"@type":"City","name":"Robbinsdale, MN"},{"@type":"City","name":"Rogers, MN"},{"@type":"City","name":"Roseville, MN"},{"@type":"City","name":"Savage, MN"},{"@type":"City","name":"Shakopee, MN"},{"@type":"City","name":"Shoreview, MN"},{"@type":"City","name":"St Louis Park, MN"},{"@type":"City","name":"St Paul, MN"},{"@type":"City","name":"Vadnais Heights, MN"},{"@type":"City","name":"Wayzata, MN"},{"@type":"City","name":"West St Paul, MN"},{"@type":"City","name":"White Bear Lake, MN"}],"offers":[{"@type":"AggregateOffer","lowPrice":"189.00","highPrice":"222.00","priceCurrency":"USD","url":"https://www.twohourmaids.com/book-now"}]}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.twohourmaids.com/"},{"@type":"ListItem","position":2,"name":"Book now","item":"https://www.twohourmaids.com/book-now"}]}</script>
@@ -1345,13 +1347,6 @@
         </label>
       </div>
       <div id="bw-works-extras" class="bw-works-extras" hidden>
-        
-        <label class="bw-hc-card" id="bw-hc-card">
-          <input type="checkbox" id="bw-hc-on">
-          <span class="bw-hc-text"><b>Home Care Plan</b><small>Every 4 weeks. Your clean, plus a new area detailed each visit.</small></span>
-          <span class="bw-hc-price"><b id="bw-hc-price"></b><small>a visit</small></span>
-        </label>
-        <div id="bw-hc-body" class="bw-hc-body" hidden></div>
         <div id="bw-wx-picker">
         <div class="bw-wx-head">
           <div class="bw-custom-fields-title">Add extras <span class="bw-optional">optional</span></div>
@@ -1390,6 +1385,16 @@
       </select>
     </div>
     <p id="bw-recurring-note" class="bw-note" hidden>Recurring plans save up to $33 a visit.</p>
+
+    
+    <div id="bw-hc-wrap" class="bw-hc-wrap" hidden>
+      <label class="bw-hc-card" id="bw-hc-card">
+        <input type="checkbox" id="bw-hc-on">
+        <span class="bw-hc-text"><b>Home Care Plan</b><small>Every 4 weeks. Your clean, plus a new area detailed each visit.</small></span>
+        <span class="bw-hc-price"><b id="bw-hc-price"></b><small>a visit</small></span>
+      </label>
+      <div id="bw-hc-body" class="bw-hc-body" hidden></div>
+    </div>
 
     
     <div id="bw-rotational-wrap" class="bw-tier-wrap" hidden>
@@ -3082,6 +3087,7 @@
     if (!wrap) return;
     var on = selectedService === "works" && DETAIL_EXTRAS.length > 0;
     wrap.hidden = !on;
+    document.getElementById("bw-hc-wrap").hidden = !on; // the Home Care Plan card, under the frequency choice
     if (!on) return;
     renderHomeCare();
     if (hcOn) { var tt = document.getElementById("bw-works-extras-time"); tt.textContent = ""; tt.hidden = true; return; }
