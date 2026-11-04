@@ -1304,6 +1304,13 @@
   #bw-root .bw-pin { width: 12px; height: 14px; flex: none; fill: #FFC933; stroke: #7a5a00; stroke-width: 1.6; }
   #bw-root .bw-pin circle { fill: #202124; stroke: none; }
   #bw-root .bw-timegrid .bw-waitlist { grid-column: 1 / -1; }
+  #bw-root .bw-city-other { margin: 12px 0 0; padding: 12px 14px; border: 1px solid var(--t-line); border-radius: 8px; background: var(--t-soft); }
+  #bw-root .bw-city-other p { margin: 0 0 10px; font: 400 .875rem/1.45 var(--mac-font); color: var(--t-ink-2); }
+  #bw-root .bw-city-other-row { display: flex; gap: 8px; }
+  #bw-root .bw-city-other-row input { flex: 1; min-width: 0; min-height: 48px; padding: 0 14px; border: 1px solid var(--t-line); border-radius: 8px; background: #fff; font: 400 1rem var(--mac-font); color: var(--t-ink); }
+  #bw-root .bw-city-other-row input:focus { outline: none; border: 2px solid var(--t-blue); padding: 0 13px; }
+  #bw-root .bw-city-other-row .bw-primary { min-width: 5.5rem; }
+  #bw-root .bw-city-other[hidden] { display: none !important; }
   #bw-root .bw-times-note { margin: 12px 2px 0; font: 400 .8125rem/1.5 var(--mac-font); color: var(--t-muted); }
   #bw-root .bw-times-note[hidden] { display: none !important; }
   #bw-root #bw-best { margin-top: 16px; }
@@ -1788,6 +1795,16 @@
           <span class="bw-dd-label" id="bw-date-label">Date</span>
           <button type="button" id="bw-date-btn" class="bw-dd-btn" aria-haspopup="dialog" aria-expanded="false" aria-labelledby="bw-date-label bw-date-val"><span id="bw-date-val" class="bw-dd-val">Pick a date</span><svg class="bw-caret" viewBox="0 0 24 24" aria-hidden="true"><path d="M7 10l5 5 5-5z"/></svg></button>
         </div>
+      </div>
+
+      
+      <div id="bw-city-other" class="bw-city-other" hidden>
+        <p>Type your ZIP and we will find your city, or tell you if we are not there yet.</p>
+        <div class="bw-city-other-row">
+          <input type="text" id="bw-city-zip" inputmode="numeric" pattern="[0-9]*" maxlength="5" autocomplete="postal-code" placeholder="ZIP code" aria-label="ZIP code">
+          <button type="button" id="bw-city-zip-go" class="bw-primary bw-primary-auto">Check</button>
+        </div>
+        <p id="bw-city-zip-note" class="bw-fine" aria-live="polite"></p>
       </div>
 
       <div id="bw-date-pop" class="bw-pop" role="dialog" aria-label="Choose a date" hidden>
@@ -5659,10 +5676,11 @@
   });
 
   // Opened at load for an unserved ?zip= (the website's ZIP check), Back goes to the first step; otherwise back to the details form.
-  var oaFromLink = false;
+  var oaFromLink = false, oaFromTimes = false;
   document.getElementById("bw-oa-back").addEventListener("click", function () {
     stepOutOfArea.hidden = true;
     if (oaFromLink) { oaFromLink = false; stepGate.hidden = false; return; }
+    if (oaFromTimes) { oaFromTimes = false; stepCalendar.hidden = false; return; }
     stepForm.hidden = false;
   });
 
@@ -6303,10 +6321,28 @@
     enhanceSelect(svcsBath, "Bathrooms");
     // the city list: the names the server knows (supabase/functions/_shared/serviceCities.ts)
     var citySel = document.getElementById("bw-city");
-    citySel.innerHTML = "<option value=''>Choose city</option>" + (CONFIG.CITIES || []).map(function (c) { return "<option value='" + esc(c[0]) + "'>" + esc(c[0]) + "</option>"; }).join("");
+    citySel.innerHTML = "<option value=''>Choose city</option>" + (CONFIG.CITIES || []).map(function (c) { return "<option value='" + esc(c[0]) + "'>" + esc(c[0]) + "</option>"; }).join("") + "<option value='__other'>My city is not listed</option>";
     enhanceSelect(citySel, "", "Choose city");
+    var cityOther = document.getElementById("bw-city-other");
+    function checkCityZip() {
+      var note = document.getElementById("bw-city-zip-note"), z = document.getElementById("bw-city-zip").value.replace(/\D/g, "").slice(0, 5);
+      if (z.length !== 5) { note.textContent = "Enter a 5-digit ZIP code."; return; }
+      var name = Object.keys(CITY_ZIPS).filter(function (c) { return CITY_ZIPS[c].indexOf(z) !== -1; })[0];
+      if (CONFIG.SERVICE_AREA_ZIPS.indexOf(z) !== -1 && name) {
+        var zf = document.getElementById("bw-zip");
+        if (zf && !zf.value) { zf.value = z; zf.dispatchEvent(new Event("input")); } // the details step will not ask again
+        citySel.value = name; citySel.dispatchEvent(new Event("change", { bubbles: true }));
+        return;
+      }
+      oaFromTimes = true; stepCalendar.hidden = true; showOutOfArea(z);
+    }
+    document.getElementById("bw-city-zip-go").addEventListener("click", checkCityZip);
+    document.getElementById("bw-city-zip").addEventListener("keydown", function (e) { if (e.key === "Enter") { e.preventDefault(); checkCityZip(); } });
     citySel.addEventListener("change", function () {
-      selectedCity = citySel.value;
+      var other = citySel.value === "__other";
+      cityOther.hidden = !other;
+      if (other) document.getElementById("bw-city-zip-note").textContent = "";
+      selectedCity = other ? "" : citySel.value;
       chosen = null;
       calError.hidden = true;
       loadMonth(viewYear, viewMonth);
