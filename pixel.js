@@ -17,7 +17,8 @@
   - Events, window.thmTrack(name, params): view_item (pages marked data-view-item), zip_check {served}, begin_checkout, add_payment_info,
     purchase {value, transaction_id = the booking id}, generate_lead {form}, click_to_call and click_to_text (every tel: and sms: tap is
     caught here), and LCP, INP and CLS from real visits. GA4 gets them all; Meta gets ViewContent, Lead (a served ZIP, a quote or lead
-    form), InitiateCheckout, Contact and Purchase with eventID = the booking id (so the server-side Conversions API can dedupe it);
+    form), InitiateCheckout, Contact, and on a completed booking both Purchase and Schedule, each with eventID = the booking id (so the
+    server-side Conversions API can dedupe each event name: it must send both, with that id as event_id);
     Google Ads gets the booking conversion. Names, phones, emails and addresses are never sent: only values, currency, ids and short
     labels pass, and Meta's automatic events and advanced matching stay off (leave them off in Events Manager too).
   - Clarity masks every form field on every page and the whole booking page (strict). Pick "Strict" masking in Clarity's settings too.
@@ -148,7 +149,10 @@
       }
       if (window.fbq) {
         var m = name === 'zip_check' ? (p.served ? 'Lead' : null) : name === 'generate_lead' && p.served === false ? null : META[name];
-        if (m) window.fbq('track', m, compact({ value: value, currency: currency, content_name: item || str(p.form, 40) }), name === 'purchase' && txn ? { eventID: txn } : undefined);
+        var dedupe = name === 'purchase' && txn ? { eventID: txn } : undefined;
+        if (m) window.fbq('track', m, compact({ value: value, currency: currency, content_name: item || str(p.form, 40) }), dedupe);
+        // A completed booking is also Meta's Schedule (an appointment booked), with the same eventID (2026-11-04, the Meta ads work).
+        if (name === 'purchase') window.fbq('track', 'Schedule', compact({ value: value, currency: currency, content_name: item }), dedupe);
       }
     } catch (e) { /* never break the page */ }
   };
