@@ -629,6 +629,16 @@
   @media (max-width: 420px) { .bw-n3-names { grid-template-columns: 1fr; } }
   .bw-n3-ref { color: var(--bw-ink, inherit); font-weight: 600; }
   .bw-done-n3 { margin-top: 18px; text-align: left; }
+  .bw-heard { margin-top: 18px; text-align: center; }
+  .bw-heard-q { font-weight: 600; font-size: 0.9375rem; margin: 0 0 10px; }
+  .bw-heard-chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+  .bw-heard-chips[hidden], .bw-heard-other[hidden], .bw-heard-thanks[hidden] { display: none; }
+  .bw-heard-chips button { min-height: 44px; padding: 8px 14px; border: 1px solid var(--bw-hairline); border-radius: 999px; background: #fff; font: inherit; font-size: 0.875rem; cursor: pointer; color: inherit; }
+  .bw-heard-chips button.bw-on { border-color: #309DDD; background: #eaf6fd; }
+  .bw-heard-other { display: flex; gap: 8px; margin-top: 10px; }
+  .bw-heard-other input { flex: 1; min-width: 0; min-height: 44px; }
+  .bw-heard-other button { min-height: 44px; padding: 0 16px; border: 0; border-radius: 10px; background: #309DDD; color: #fff; font: inherit; font-weight: 700; cursor: pointer; }
+  .bw-heard-thanks { color: var(--bw-muted); margin: 0; }
   .bw-n3-done-title { font-family: "Fraunces", serif; font-weight: 600; font-size: 1rem; margin: 0 0 4px; }
   .bw-n3-done-sub { color: var(--bw-muted); font-size: 0.8125rem; margin: 0 0 10px; line-height: 1.5; }
   .bw-n3-share { border: 1px solid var(--bw-hairline); border-radius: 10px; padding: 10px 12px; margin-bottom: 8px; background: #fff; }
@@ -1089,7 +1099,7 @@
   #bw-root .bw-time-save { display: block; font-size: 0.6875rem; font-weight: 700; color: var(--t-green); line-height: 1.2; }
   /* Quick booking (?quick=1): only who, where and the card below the sheet; the rest comes after booking */
   #bw-root.bw-quick .bw-field:has(#bw-lang), #bw-root.bw-quick .bw-field:has(#bw-contact-pref), #bw-root.bw-quick .bw-field:has(#bw-kids),
-  #bw-root.bw-quick #bw-kids-box, #bw-root.bw-quick .bw-field:has(#bw-heard), #bw-root.bw-quick .bw-field:has(#bw-special-requests),
+  #bw-root.bw-quick #bw-kids-box, #bw-root.bw-quick .bw-field:has(#bw-special-requests),
   #bw-root.bw-quick .bw-yard-sign, #bw-root.bw-quick .bw-pet-note, #bw-root.bw-quick .bw-photo-note, #bw-root.bw-quick .bw-notes-tools, #bw-root.bw-quick #bw-notes-found,
   #bw-root.bw-quick #bw-n3, #bw-root.bw-quick #bw-half-wrap, #bw-root.bw-quick #bw-tip-wrap, #bw-root.bw-quick #bw-tie-wrap,
   #bw-root.bw-quick #bw-paymethod, #bw-root.bw-quick #bw-shift-note, #bw-root.bw-quick #bw-paytime { display: none !important; }
@@ -1970,22 +1980,6 @@
         <label class="bw-checkbox-row"><input type="checkbox" id="bw-kids-gift" checked><span>Yes, leave a free holiday gift for each child</span></label>
       </div>
 
-      
-      <label class="bw-field">
-        <span>How did you hear about us? <em class="bw-opt-label">(optional)</em></span>
-        <select id="bw-heard" name="heard">
-          <option value="">Pick one</option>
-          <option value="google">Google</option>
-          <option value="friend">Friend</option>
-          <option value="yard_sign">Yard sign</option>
-          <option value="flyer_mail">Flyer or mail</option>
-          <option value="facebook">Facebook</option>
-          <option value="nextdoor">Nextdoor</option>
-          <option value="other">Other</option>
-        </select>
-        <input type="text" id="bw-heard-other" maxlength="80" placeholder="A few words (optional)" hidden>
-      </label>
-
       <div class="bw-field-row">
         <label class="bw-field bw-field-grow">
           <span>Address</span>
@@ -2175,6 +2169,18 @@
     <p id="bw-done-detail" class="bw-done-detail"></p>
     
     <div id="bw-done-n3" class="bw-done-n3" hidden></div>
+    
+    <div id="bw-heard" class="bw-heard" hidden>
+      <p class="bw-heard-q">How did you hear about us?</p>
+      <div class="bw-heard-chips">
+        <button type="button" data-heard="google">Google</button><button type="button" data-heard="friend">Friend</button>
+        <button type="button" data-heard="yard_sign">Yard sign</button><button type="button" data-heard="flyer_mail">Flyer or mail</button>
+        <button type="button" data-heard="facebook">Facebook</button><button type="button" data-heard="nextdoor">Nextdoor</button>
+        <button type="button" data-heard="other">Other</button>
+      </div>
+      <div class="bw-heard-other" hidden><input type="text" maxlength="80" placeholder="A few words (optional)" aria-label="Where you heard about us"><button type="button">Save</button></div>
+      <p class="bw-heard-thanks" hidden>Thank you!</p>
+    </div>
     <div class="bw-actionbar bw-actionbar-center"><button type="button" id="bw-done-btn" class="bw-primary bw-primary-auto">Done</button></div>
   </div>
 
@@ -2316,6 +2322,8 @@
     INTAKE_URL:              "https://isbhlmihbibdnajvicrj.supabase.co/functions/v1/booking-intake",
     // Live price list for car / window / air duct / carpet cleaning. Edit prices in the app (Admin -> Service Prices).
     CATALOG_URL:             "https://isbhlmihbibdnajvicrj.supabase.co/functions/v1/service-catalog",
+    // The customer's account (customer-portal): the done screen saves "How did you hear about us?" with the new customer's token.
+    CUSTOMER_PORTAL_URL:     "https://isbhlmihbibdnajvicrj.supabase.co/functions/v1/customer-portal",
 
     // Re-clean and refund policy per service. The live text comes from the service-catalog function (edited in the
     // app); this is only what shows if that call fails. The Two Hour Clean has NO re-cleans or refunds.
@@ -3925,12 +3933,15 @@
 
   // "Name three" referrals (0303). A friend's link opens this page with ?ref=<code>; kept for the visit like the QR code above.
   // create-booking checks the code and takes the friend's first-clean gift off; the page only shows it.
-  (function () {
-    var heard = document.getElementById("bw-heard"), other = document.getElementById("bw-heard-other");
-    if (!heard) return;
-    heard.addEventListener("change", function () { other.hidden = heard.value !== "other"; });
-    setTimeout(function () { if (!heard.value && friendCode()) heard.value = "friend"; }, 0);
-  })();
+  // "How did you hear about us?" (0534) is asked after booking (Jack, 2026-11-05). A Meta ad visit is never asked: it is logged as Facebook,
+  // the same rule as isMetaVisit in _shared/attribution.ts. A friend's code is logged as Friend.
+  function isMetaVisit() {
+    var a = attribution();
+    return [a && a.last, a && a.first].some(function (t) {
+      return !!t && (!!t.fbclid || /^(facebook|fb|instagram|ig|meta)$/i.test(String(t.utm_source || "").trim()));
+    });
+  }
+  function autoHeard() { return isMetaVisit() ? "facebook" : friendCode() ? "friend" : null; }
   // Kids' holiday gift (0555): one age band per child, nothing else.
   (function () {
     var sel = document.getElementById("bw-kids"), box = document.getElementById("bw-kids-box"), ages = document.getElementById("bw-kids-ages");
@@ -5556,8 +5567,7 @@
       contact_pref: (document.getElementById("bw-contact-pref") || {}).value === "call" ? "call" : "text",
       kids_gifts: kidsAnswer().gifts,
       kids: kidsAnswer().bands,
-      how_heard: (document.getElementById("bw-heard") || {}).value || null,
-      how_heard_other: (document.getElementById("bw-heard-other") || {}).value ? document.getElementById("bw-heard-other").value.trim().slice(0, 80) : null,
+      how_heard: autoHeard(),
       referred_by: friendCode() ? null : ((document.getElementById("bw-n3-by") || {}).value || "").trim() || null,
       price_test_id: priceTestFields().price_test_id,
       price_arm: priceTestFields().price_arm,
@@ -5755,11 +5765,33 @@
     if (!isSubmitting) renderOrder();
   }
 
+  // Only for a brand-new customer (the getting-ready link carries their account token) who was not already logged as Meta or Friend.
+  function askHeard(readyUrl) {
+    var box = document.getElementById("bw-heard"), m = /[?&]t=([0-9a-f]{32})/.exec(readyUrl || "");
+    if (!box || !m || autoHeard()) return;
+    var otherRow = box.querySelector(".bw-heard-other");
+    function save(heard, other) {
+      box.querySelector(".bw-heard-chips").hidden = true; otherRow.hidden = true; box.querySelector(".bw-heard-thanks").hidden = false;
+      fetch(CONFIG.CUSTOMER_PORTAL_URL, { method: "POST", headers: { "content-type": "application/json" },
+        body: JSON.stringify({ t: m[1], action: "how_heard", how_heard: heard, how_heard_other: other || null }) }).catch(function () {});
+    }
+    box.querySelectorAll("[data-heard]").forEach(function (b) {
+      b.addEventListener("click", function () {
+        if (b.getAttribute("data-heard") !== "other") return save(b.getAttribute("data-heard"));
+        box.querySelectorAll("[data-heard]").forEach(function (x) { x.classList.toggle("bw-on", x === b); });
+        otherRow.hidden = false; otherRow.querySelector("input").focus();
+      });
+    });
+    otherRow.querySelector("button").addEventListener("click", function () { save("other", otherRow.querySelector("input").value.trim().slice(0, 80)); });
+    box.hidden = false;
+  }
+
   function showDone(res) {
     bookingCompleted = true;
     // The customer's getting-ready link (confirm-booking's ready_url, 0162) leads the done screen when the server sends it.
     var ready = document.getElementById("bw-ready-cta"), readyUrl = res && typeof res.ready_url === "string" && /^https:\/\//.test(res.ready_url) ? res.ready_url : "";
     if (ready && readyUrl) { ready.querySelector("a").href = readyUrl; ready.hidden = false; }
+    askHeard(readyUrl);
     track("purchase", { value: bookingValue(), transaction_id: lastBookingId, item: serviceName() });
     if (holdTimer) { clearInterval(holdTimer); holdTimer = null; }
     hold = null;
