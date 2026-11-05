@@ -2268,9 +2268,10 @@
     // "Add the card fee you save to your crew's tip" (0676) and the slow-day savings (0677) are switched on the server, not here
     // (organizations.bank_fee_tip_enabled / slow_day_enabled, Pricing > Booking discounts); this page asks booking-availability.
     PAY_BY_BANK: false,
-    // The booking page's "No photos in my home, please" box (cus-0026): on once create-booking stores photos_opt_out on the customer
-    // (customers.photos_opt_out, the field the account page switches). Off: the box stays hidden and the notice points to the account page.
-    PHOTO_OPT_OUT_LIVE: false,
+    // The booking page's "No photos in my home, please" box (cus-0026): ON since 2026-11-04, when confirm-booking went live with 79e1bcb
+    // (create-booking keeps the request, confirm-booking sets customers.photos_opt_out, the field the account page switches). Off: the box
+    // stays hidden and the notice points to the account page.
+    PHOTO_OPT_OUT_LIVE: true,
     // The +60 minutes step ($80, extra_half_hours 2) in the checkout sheet: turned on once create-booking takes 2 (server work in progress, 2026-11-04).
     EXTRA_HOUR_LIVE: false,
     BANK_DISCOUNT_CENTS: 0,
