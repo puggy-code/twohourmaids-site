@@ -2916,7 +2916,7 @@
     var el = document.getElementById("bw-pick");
     if (!el) {
       el = document.createElement("div");
-      el.id = "bw-pick"; el.className = "bw-2h-pop bw-pick"; el.setAttribute("role", "dialog"); el.setAttribute("aria-modal", "true"); el.setAttribute("aria-label", "Find the right clean");
+      el.id = "bw-pick"; el.className = "bw-2h-pop"; el.setAttribute("role", "dialog"); el.setAttribute("aria-modal", "true"); el.setAttribute("aria-label", "Find the right clean");
       el.innerHTML = "<div class='bw-2h-card bw-pick-card'><button type='button' class='bw-2h-x' aria-label='Close'>&times;</button><div class='bw-pick-body' aria-live='polite'></div></div>";
       document.getElementById("bw-root").appendChild(el);
       el.addEventListener("click", function (e) { if (e.target === el || (e.target.closest && e.target.closest(".bw-2h-x"))) el.hidden = true; });
