@@ -1410,6 +1410,19 @@
   #bw-root .bw-done-detail { margin: 16px 0 0; font-size: .8125rem; color: var(--t-muted); }
   #bw-root .bw-ready-cta a { border-radius: 4px; background: var(--t-blue); }
   @media (prefers-reduced-motion: reduce) { #bw-root .bw-caret { transition: none; } }
+
+  /* Wide screens: steps on the left, the estimator as a sticky side column. Phone layout is untouched. */
+  #bw-side { display: none; }
+  @media (min-width: 900px) {
+    #bw-root { display: grid; grid-template-columns: minmax(0, 440px) 280px; column-gap: 24px; max-width: 744px; align-items: start; }
+    #bw-root > * { grid-column: 1; }
+    #bw-root > #bw-menu { grid-column: 1 / -1; }
+    #bw-root > #bw-side { display: block; grid-column: 2; grid-row: 1; position: sticky; top: 16px; align-self: start; }
+    #bw-root[data-quick] { display: block; max-width: 440px; }
+    #bw-root[data-quick] > #bw-side { display: none; }
+    #bw-root:has(#bw-step-done:not([hidden])) > #bw-side,
+    #bw-root:has(#bw-step-outofarea:not([hidden])) > #bw-side { display: none; }
+  }
 </style>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Service","name":"House cleaning","serviceType":"House cleaning","description":"Book a Two Hour Clean or a Checklist Clean online.","provider":{"@id":"https://www.twohourmaids.com/#business"},"areaServed":[{"@type":"City","name":"Apple Valley, MN"},{"@type":"City","name":"Blaine, MN"},{"@type":"City","name":"Bloomington, MN"},{"@type":"City","name":"Brooklyn Center, MN"},{"@type":"City","name":"Brooklyn Park, MN"},{"@type":"City","name":"Champlin, MN"},{"@type":"City","name":"Chanhassen, MN"},{"@type":"City","name":"Chaska, MN"},{"@type":"City","name":"Columbia Heights, MN"},{"@type":"City","name":"Coon Rapids, MN"},{"@type":"City","name":"Crystal, MN"},{"@type":"City","name":"Dayton, MN"},{"@type":"City","name":"Eagan, MN"},{"@type":"City","name":"Eden Prairie, MN"},{"@type":"City","name":"Edina, MN"},{"@type":"City","name":"Excelsior, MN"},{"@type":"City","name":"Fridley, MN"},{"@type":"City","name":"Golden Valley, MN"},{"@type":"City","name":"Hanover, MN"},{"@type":"City","name":"Hopkins, MN"},{"@type":"City","name":"Long Lake, MN"},{"@type":"City","name":"Loretto, MN"},{"@type":"City","name":"Maple Grove, MN"},{"@type":"City","name":"Maple Plain, MN"},{"@type":"City","name":"Maplewood, MN"},{"@type":"City","name":"Medina, MN"},{"@type":"City","name":"Mendota Heights, MN"},{"@type":"City","name":"Minneapolis, MN"},{"@type":"City","name":"Minnetonka, MN"},{"@type":"City","name":"Mound, MN"},{"@type":"City","name":"Navarre, MN"},{"@type":"City","name":"New Brighton, MN"},{"@type":"City","name":"Oakdale, MN"},{"@type":"City","name":"Plymouth, MN"},{"@type":"City","name":"Richfield, MN"},{"@type":"City","name":"Robbinsdale, MN"},{"@type":"City","name":"Rogers, MN"},{"@type":"City","name":"Roseville, MN"},{"@type":"City","name":"Savage, MN"},{"@type":"City","name":"Shakopee, MN"},{"@type":"City","name":"Shoreview, MN"},{"@type":"City","name":"St Louis Park, MN"},{"@type":"City","name":"St Paul, MN"},{"@type":"City","name":"Vadnais Heights, MN"},{"@type":"City","name":"Wayzata, MN"},{"@type":"City","name":"West St Paul, MN"},{"@type":"City","name":"White Bear Lake, MN"}],"offers":[{"@type":"AggregateOffer","lowPrice":"189.00","highPrice":"222.00","priceCurrency":"USD","url":"https://www.twohourmaids.com/book-now"}]}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.twohourmaids.com/"},{"@type":"ListItem","position":2,"name":"Book now","item":"https://www.twohourmaids.com/book-now"}]}</script>
@@ -2212,9 +2225,24 @@
 
   </section>
 
+  
+  <aside id="bw-side" class="bw-side" aria-label="Estimate for your home"></aside>
+
 </div>
 
 <script src="https://js.stripe.com/v3/"></script>
+<script>
+(function () {
+  // Estimator beside the steps on wide screens, back inside the first step on phones.
+  var est = document.getElementById("bw-est"), side = document.getElementById("bw-side");
+  var anchor = document.querySelector("#bw-gate-form .bw-gate-price");
+  if (!est || !side || !anchor || !window.matchMedia) return;
+  var mq = window.matchMedia("(min-width: 900px)");
+  function place() { if (mq.matches) side.appendChild(est); else anchor.parentNode.insertBefore(est, anchor); }
+  place();
+  if (mq.addEventListener) mq.addEventListener("change", place); else if (mq.addListener) mq.addListener(place);
+})();
+</script>
 <script>
 (function () {
   "use strict";
@@ -5935,6 +5963,7 @@
       // (above, at 450 ms); the calendar then holds the time (dTry) and the details step opens as the sheet (quickSetup).
       if (q.get("quick") === "1" && svcKey === "two_hour") {
         quickMode = true;
+        document.getElementById("bw-root").setAttribute("data-quick", "1");
         document.getElementById("bw-root").classList.add("bw-quick");
         setTimeout(function () { stepGate.hidden = true; stepServices.hidden = true; stepCalendar.hidden = false; }, 500);
       }
