@@ -1423,6 +1423,15 @@
     #bw-root:has(#bw-step-done:not([hidden])) > #bw-side,
     #bw-root:has(#bw-step-outofarea:not([hidden])) > #bw-side { display: none; }
   }
+  /* The three-screen flow (Jack, 2026-11-04): the home's condition across the size row; on the Two Hour Clean's card the plan chips, Book
+     across the card and the fit line under it; no Continue under the times (a tap on a time moves on). */
+  #bw-root .bw-svcs-cond, #bw-root .bw-svcs-size > .bw-dd:has(+ .bw-svcs-cond) { grid-column: 1 / -1; } /* the custom dropdown sits just before its label */
+  #bw-root .bw-opt-plans, #bw-root .bw-opt-go-wide, #bw-root .bw-opt-fitline { grid-column: 1 / -1; }
+  #bw-root .bw-opt-plans { margin: 2px 0 0; }
+  #bw-root .bw-opt-go-wide { width: 100%; margin-top: 0; }
+  #bw-root .bw-opt-fitline { margin: 0; font-size: 0.8125rem; line-height: 1.5; color: var(--t-ink-2); }
+  #bw-root .bw-opt-alt { display: inline; padding: 0; border: 0; background: none; color: var(--t-blue); font: inherit; font-weight: 600; text-decoration: underline; text-underline-offset: 2px; cursor: pointer; }
+  #bw-root .bw-actionbar:has(#bw-times-go) { display: none; }
 </style>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"Service","name":"House cleaning","serviceType":"House cleaning","description":"Book a Two Hour Clean or a Checklist Clean online.","provider":{"@id":"https://www.twohourmaids.com/#business"},"areaServed":[{"@type":"City","name":"Apple Valley, MN"},{"@type":"City","name":"Blaine, MN"},{"@type":"City","name":"Bloomington, MN"},{"@type":"City","name":"Brooklyn Center, MN"},{"@type":"City","name":"Brooklyn Park, MN"},{"@type":"City","name":"Champlin, MN"},{"@type":"City","name":"Chanhassen, MN"},{"@type":"City","name":"Chaska, MN"},{"@type":"City","name":"Columbia Heights, MN"},{"@type":"City","name":"Coon Rapids, MN"},{"@type":"City","name":"Crystal, MN"},{"@type":"City","name":"Dayton, MN"},{"@type":"City","name":"Eagan, MN"},{"@type":"City","name":"Eden Prairie, MN"},{"@type":"City","name":"Edina, MN"},{"@type":"City","name":"Excelsior, MN"},{"@type":"City","name":"Fridley, MN"},{"@type":"City","name":"Golden Valley, MN"},{"@type":"City","name":"Hanover, MN"},{"@type":"City","name":"Hopkins, MN"},{"@type":"City","name":"Long Lake, MN"},{"@type":"City","name":"Loretto, MN"},{"@type":"City","name":"Maple Grove, MN"},{"@type":"City","name":"Maple Plain, MN"},{"@type":"City","name":"Maplewood, MN"},{"@type":"City","name":"Medina, MN"},{"@type":"City","name":"Mendota Heights, MN"},{"@type":"City","name":"Minneapolis, MN"},{"@type":"City","name":"Minnetonka, MN"},{"@type":"City","name":"Mound, MN"},{"@type":"City","name":"Navarre, MN"},{"@type":"City","name":"New Brighton, MN"},{"@type":"City","name":"Oakdale, MN"},{"@type":"City","name":"Plymouth, MN"},{"@type":"City","name":"Richfield, MN"},{"@type":"City","name":"Robbinsdale, MN"},{"@type":"City","name":"Rogers, MN"},{"@type":"City","name":"Roseville, MN"},{"@type":"City","name":"Savage, MN"},{"@type":"City","name":"Shakopee, MN"},{"@type":"City","name":"Shoreview, MN"},{"@type":"City","name":"St Louis Park, MN"},{"@type":"City","name":"St Paul, MN"},{"@type":"City","name":"Vadnais Heights, MN"},{"@type":"City","name":"Wayzata, MN"},{"@type":"City","name":"West St Paul, MN"},{"@type":"City","name":"White Bear Lake, MN"}],"offers":[{"@type":"AggregateOffer","lowPrice":"189.00","highPrice":"222.00","priceCurrency":"USD","url":"https://www.twohourmaids.com/book-now"}]}</script>
 <script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"Home","item":"https://www.twohourmaids.com/"},{"@type":"ListItem","position":2,"name":"Book now","item":"https://www.twohourmaids.com/book-now"}]}</script>
@@ -1471,15 +1480,6 @@
           </label>
         </div>
         
-        <label class="bw-gate-field bw-gate-cond">
-          <span>How is your home right now?</span>
-          <select id="bw-gate-condition">
-            <option value="kept">Kept up</option>
-            <option value="while">It has been a while</option>
-            <option value="dirty">Really dirty</option>
-          </select>
-        </label>
-        
         <div id="bw-est" class="bw-est" aria-live="polite">
           <div class="bw-est-head"><span class="bw-est-tag">Suggested for your home</span><b id="bw-est-name">Two Hour Clean</b></div>
           <div class="bw-est-grid">
@@ -1510,12 +1510,21 @@
   
   <div id="bw-step-services" class="bw-svcs" hidden>
     <div class="bw-svcs-bar bw-bar">
-      <button type="button" id="bw-svcs-back" class="bw-svcs-back bw-bar-back" aria-label="Back"></button>
+      <button type="button" id="bw-svcs-back" class="bw-svcs-back bw-bar-back" aria-label="Back" hidden></button>
       <div class="bw-svcs-bar-title bw-bar-title"><h3 class="bw-svcs-title">Choose your clean</h3><p class="bw-bar-sub">Two Hour Maids</p><div id="bw-svcs-home" class="bw-svcs-home"></div></div>
     </div>
     <div class="bw-svcs-size">
       <label class="bw-svcs-size-field"><span>Bedrooms</span><select id="bw-svcs-bed"></select></label>
       <label class="bw-svcs-size-field"><span>Bathrooms</span><select id="bw-svcs-bath"></select></label>
+      
+      <label class="bw-svcs-size-field bw-svcs-cond">
+        <span>How is your home right now?</span>
+        <select id="bw-gate-condition">
+          <option value="kept">Kept up</option>
+          <option value="while">It has been a while</option>
+          <option value="dirty">Really dirty</option>
+        </select>
+      </label>
     </div>
     <div id="bw-svcs-chips" class="bw-svcs-chips" role="tablist" hidden></div>
     <div id="bw-svcs-list"></div>
@@ -1937,8 +1946,8 @@
 
       
       <label class="bw-field">
-        <span>How did you hear about us?</span>
-        <select id="bw-heard" name="heard" required>
+        <span>How did you hear about us? <em class="bw-opt-label">(optional)</em></span>
+        <select id="bw-heard" name="heard">
           <option value="">Pick one</option>
           <option value="google">Google</option>
           <option value="friend">Friend</option>
@@ -2776,15 +2785,25 @@
         wf.addEventListener("click", openTwoHourInfo);
         opt.querySelector(".bw-opt-left").appendChild(wf);
       }
-      if (recurring) opt.querySelector(".bw-opt-pill").textContent = "Save " + wholeDollars(formatPrice(frequencyDiscountCents("every_other_week", key, gateBathroomSelect.value))) + " a visit";
-      var price = wholeDollars(tilePrice(key));
+      // The Two Hour Clean's card carries its plan (Jack, 2026-11-04, the three-screen flow): the price is the chosen plan's, the pill its
+      // saving against one time, and Book goes straight to the times. Every other clean shows its one-time price and goes to its choices.
+      var twoHour = key === "two_hour";
+      var planOff = twoHour && selectedFrequency !== "one_time" ? (twoHourPrice("one_time") || 0) - (twoHourPrice(selectedFrequency) || 0) : 0;
+      if (recurring) {
+        var pill = opt.querySelector(".bw-opt-pill");
+        if (twoHour && !(planOff > 0)) pill.remove();
+        else pill.textContent = "Save " + wholeDollars(formatPrice(twoHour ? planOff : frequencyDiscountCents("every_other_week", key, gateBathroomSelect.value))) + " a visit";
+      }
+      var price = twoHour && twoHourPrice(selectedFrequency) != null ? wholeDollars(formatPrice(twoHourPrice(selectedFrequency))) : wholeDollars(tilePrice(key));
       opt.querySelector(".bw-opt-price").textContent = price;
-      opt.querySelector(".bw-opt-per").textContent = /^\$/.test(price) ? (key === "four_hour" ? "per visit" : "one-time price") : "";
-      var go = function () { btn.click(); stepServices.hidden = true; showOptionsStep(); };
-      // The recurring price, revealed a few seconds in (a red X over the one-time price). Only where a frequency discount applies.
+      opt.querySelector(".bw-opt-per").textContent = /^\$/.test(price) ? (key === "four_hour" ? "per visit"
+        : twoHour && selectedFrequency !== "one_time" ? "a visit, " + String(FREQ_SHORT[selectedFrequency] || "").toLowerCase() : "one-time price") : "";
+      var go = function () { btn.click(); stepServices.hidden = true; if (twoHour) showTimesStep(); else showOptionsStep(); };
+      // The recurring price, revealed a few seconds in (a red X over the one-time price). Only where a frequency discount applies, and not
+      // on the Two Hour Clean, whose plan chips show every price at once.
       var oneTime = /^\$/.test(price) ? Math.round(parseFloat(price.replace(/[^0-9.]/g, "")) * 100) : 0;
       var recurOff = frequencyDiscountCents("every_other_week", key, gateBathroomSelect.value);
-      if ((key === "two_hour" || key === "works") && recurOff > 0 && oneTime > recurOff) {
+      if (key === "works" && recurOff > 0 && oneTime > recurOff) {
         opt.querySelector(".bw-opt-recur b").textContent = wholeDollars(formatPrice(oneTime - recurOff));
         opt.querySelector(".bw-opt-recur-when").textContent = "with an every-other-week plan";
         revealQueue.push(opt);
@@ -2792,8 +2811,40 @@
       // A first visit is the Two Hour Clean or The Checklist Clean, the customer's choice (Jack, 2026-11-03); the Four Hour Home Detailing
       // comes after it (Jack, 2026-11-01), so its tile asks for the phone first and tells a first-timer so (askPhoneOnTile).
       var pick = function () { if (visitStatus !== "returning" && !isFirstVisitService(key)) askPhoneOnTile(opt, key, go); else go(); };
-      // Booking the Two Hour Clean shows the "Before you book" advisory first (Jack, 2026-10-18: keep it, show it when they click Two Hour).
-      opt.querySelector(".bw-opt-go").addEventListener("click", key === "two_hour" ? function () { openTwoHourAdvisory(pick); } : pick);
+      var goBtn = opt.querySelector(".bw-opt-go");
+      goBtn.addEventListener("click", pick);
+      if (twoHour) {
+        // The plan chips (the same three plans as the details step's rows), then Book across the card, then the fit check as a line under
+        // Book (Jack, 2026-11-04: it was the "Before you book" sheet, one more tap).
+        var plans = document.createElement("div");
+        plans.className = "bw-quick-chips bw-opt-plans"; plans.setAttribute("role", "radiogroup"); plans.setAttribute("aria-label", "How often");
+        DIAL_STOPS.forEach(function (k) {
+          var p = twoHourPrice(k);
+          if (p == null) return;
+          var c = document.createElement("button");
+          c.type = "button"; c.className = "bw-quick-chip" + (k === selectedFrequency ? " is-on" : "");
+          c.setAttribute("role", "radio"); c.setAttribute("aria-checked", k === selectedFrequency ? "true" : "false");
+          c.innerHTML = "<span>" + esc(FREQ_SHORT[k] || k) + "</span><b>" + wholeDollars(formatPrice(p)) + "</b>";
+          c.addEventListener("click", function () {
+            if (selectedFrequency === k) return;
+            freqSelect.value = k; freqSelect.dispatchEvent(new Event("change"));
+            renderServiceTiles();
+          });
+          plans.appendChild(c);
+        });
+        opt.appendChild(plans);
+        goBtn.classList.add("bw-opt-go-wide");
+        opt.appendChild(goBtn);
+        var fit = document.createElement("p");
+        fit.className = "bw-opt-fitline";
+        fit.innerHTML = "For well-kept homes. Not for heavy clutter, strong odors, or piles of dishes or laundry. The team may leave at two hours " +
+          "for its next home; we send photos of anything left. <button type='button' class='bw-opt-alt'>Not my home? Checklist Clean</button>";
+        fit.querySelector(".bw-opt-alt").addEventListener("click", function () {
+          var c = Array.prototype.filter.call(document.querySelectorAll(".bw-opt"), function (o) { return /Checklist Clean/.test(o.querySelector(".bw-opt-name").textContent); })[0];
+          if (c) c.querySelector(".bw-opt-go").click();
+        });
+        opt.appendChild(fit);
+      }
       list.appendChild(opt);
     });
     clearTimeout(recurRevealTimer);
@@ -2807,39 +2858,8 @@
     var beds = Number(gateBedroomSelect.value), baths = Number(gateBathroomSelect.value);
     return baths <= 2.5 && beds <= 4;
   }
-  function openTwoHourAdvisory(onBook) {
-    var el = document.getElementById("bw-2h-adv");
-    if (!el) {
-      el = document.createElement("div");
-      el.id = "bw-2h-adv"; el.className = "bw-2h-pop"; el.setAttribute("role", "dialog"); el.setAttribute("aria-modal", "true"); el.setAttribute("aria-label", "Before you book");
-      el.innerHTML = "<div class='bw-2h-card'><button type='button' class='bw-2h-x' aria-label='Close'>&times;</button>" +
-        // Scannable at a glance (Jack, 2026-10-18): green for what it is for, red for what it is not, bold and short.
-        "<div class='bw-2h-head'>Before you book</div>" +
-        "<div class='bw-adv-title'>Our Two Hour Clean is for</div>" +
-        "<div class='bw-adv-row is-yes'><i aria-hidden='true'>&#10003;</i><b>Well-kept homes</b></div>" +
-        "<div class='bw-adv-row is-yes'><i aria-hidden='true'>&#10003;</i><b>Soft ending: the team may need to leave at two hours for the next home. We will send photos or a short video of anything left, and you can choose to add time.</b></div>" +
-        "<div class='bw-adv-not'>Not for</div>" +
-        "<div class='bw-adv-row is-no'><i aria-hidden='true'>&times;</i><b>Heavy clutter</b></div>" +
-        "<div class='bw-adv-row is-no'><i aria-hidden='true'>&times;</i><b>Strong odors</b></div>" +
-        "<div class='bw-adv-row is-no'><i aria-hidden='true'>&times;</i><b>Piles of dishes, laundry or items</b></div>" +
-        "<button type='button' class='bw-2h-go' data-adv='book'>Book the Two Hour Clean</button>" +
-        "<button type='button' class='bw-2h-alt' data-adv='checklist'>Not my home? Checklist Clean</button></div>";
-      document.getElementById("bw-root").appendChild(el);
-      el.addEventListener("click", function (e) {
-        var b = e.target.closest && e.target.closest("[data-adv]");
-        if (e.target === el || (e.target.closest && e.target.closest(".bw-2h-x"))) { el.hidden = true; return; }
-        if (!b) return;
-        el.hidden = true;
-        if (b.getAttribute("data-adv") === "book") { if (el._onBook) el._onBook(); return; }
-        var c = Array.prototype.filter.call(document.querySelectorAll(".bw-opt"), function (o) { return /Checklist Clean/.test(o.querySelector(".bw-opt-name").textContent); })[0];
-        if (c) c.querySelector(".bw-opt-go").click();
-      });
-      document.addEventListener("keydown", function (e) { if (e.key === "Escape") el.hidden = true; });
-    }
-    el._onBook = onBook;
-    el.hidden = false;
-    var go = el.querySelector(".bw-2h-go"); if (go && go.focus) go.focus();
-  }
+  // The Two Hour Clean's price for a plan, whichever clean is picked right now (the plan chips on its card, the three-screen flow).
+  function twoHourPrice(k) { var s = selectedService; selectedService = "two_hour"; try { return priceForFrequency(k); } finally { selectedService = s; } }
   function openTwoHourInfo() {
     var el = document.getElementById("bw-2h-pop");
     if (!el) {
@@ -4539,6 +4559,8 @@
       updateServiceView();
       updatePricing();
     }
+    // The first screen shows from the start (the three-screen flow), so the price list and a first visit can land after it: redraw the cards.
+    if (!stepServices.hidden) renderServiceTiles();
   }
 
   function activateService(btn) {
@@ -4678,7 +4700,8 @@
     if (tax > 0) rows.push([(tf.fee > 0 ? "Taxes and fees" : "Sales tax") + infoBtn("About taxes and fees", taxInfo), formatPrice(tax)]);
     if (tip > 0) rows.push(["Tip for your team", formatPrice(tip)]);
     var total = price == null ? null : price - nOff - cOff - sOff - rOff + tax + tip;
-    orderTotalNow = total == null ? 0 : total; // the quick sheet's wallet shows this (the credit-card total until a card is known)
+    orderTotalNow = total == null ? 0 : total; // the wallet shows this (the credit-card total until a card is known)
+    if (eceElements && orderTotalNow > 0) { try { eceElements.update({ amount: orderTotalNow }); } catch (e) { /* the wallet keeps the last amount */ } }
     var html = rows.map(function (r) { return "<div class='bw-order-row'><span>" + r[0] + "</span><span>" + r[1] + "</span></div>"; }).join("");
     var chargedNow = recurring || paysNowNow();
     var totalInfo = (recurring ? "Charged now, then before each visit. Cancel your plan anytime." : "Charged now. Our cancellation policy applies.") +
@@ -4965,7 +4988,7 @@
         var b = document.createElement("button");
         b.type = "button"; b.className = "bw-navbtn"; b.style.cssText = "width:auto;padding:8px 12px";
         b.textContent = prettyDate(x.day) + ", " + slot.label;
-        b.addEventListener("click", function () { chooseTime(x.day, slot); });
+        b.addEventListener("click", function () { chooseTime(x.day, slot); pickSlot(x.day, slot); });
         list.appendChild(b);
       });
       box.hidden = !list.children.length;
@@ -5071,7 +5094,7 @@
           dot.setAttribute("aria-label", dStr + " " + slot.label + (available ? " available" + routeNote : " booked"));
           if (available) {
             dot.addEventListener("click", function (dStr, slot) {
-              return function () { chooseTime(dStr, slot); closeDatePop(); };
+              return function () { chooseTime(dStr, slot); closeDatePop(); pickSlot(dStr, slot); };
             }(dStr, slot));
           } else {
             dot.disabled = true;
@@ -5231,7 +5254,21 @@
       cardEl.mount("#bw-card-element");
       cardEl._mounted = true;
     }
-    if (quickMode) quickSetup();
+    if (quickMode) quickSetup(); else fullPaySetup();
+  }
+  // The details-and-pay form of the three-screen flow (Jack, 2026-11-04): Apple Pay / Google Pay here too, through the quick sheet's
+  // pay block (the same Express Checkout and ConfirmationToken path to create-booking). The plan agreement moves up into that block, right
+  // above the wallet, which checks it before it opens. The card form below stays as it was.
+  var fullPayReady = false;
+  function fullPaySetup() {
+    if (fullPayReady) return;
+    fullPayReady = true;
+    var pay = document.getElementById("bw-quick-pay"), terms = pay.querySelector(".bw-quick-terms");
+    var consent = document.getElementById("bw-recurring-consent-wrap");
+    if (consent) pay.insertBefore(consent, terms);
+    pay.hidden = false;
+    try { renderOrder(); } catch (e) { /* the total comes with the next change */ }
+    mountWallets();
   }
   // The picked time, its price (a plan's price with the one-time price beside it) and what is booked, at the top of the details step.
   // Drawn again when the quick sheet's plan changes.
@@ -5276,7 +5313,7 @@
 
     formError.hidden = true;
     var usedToken = walletToken; walletToken = null; // a wallet's ConfirmationToken is used once, by this submit only
-    if (quickMode && !quickFieldsOk()) return;
+    if (!quickFieldsOk()) return; // who and where: asked on this form in every flow since the three-screen flow
 
     var zip = document.getElementById("bw-zip").value.trim();
     if (!/^\d{5}$/.test(zip)) {
@@ -5305,6 +5342,8 @@
     if (selectedFrequency !== "one_time" && !(recurringConsent && recurringConsent.checked)) {
       formError.textContent = "Please check the box to agree to the charges for your recurring plan.";
       formError.hidden = false;
+      // The box sits above the wallet, at the top of this form (the three-screen flow): take the customer to it.
+      try { recurringConsent.scrollIntoView({ block: "center", behavior: "smooth" }); recurringConsent.focus({ preventScroll: true }); } catch (e) { /* the message says where */ }
       return;
     }
 
@@ -5723,7 +5762,7 @@
   var oaFromLink = false, oaFromTimes = false;
   document.getElementById("bw-oa-back").addEventListener("click", function () {
     stepOutOfArea.hidden = true;
-    if (oaFromLink) { oaFromLink = false; stepGate.hidden = false; return; }
+    if (oaFromLink) { oaFromLink = false; showServicesStep(); return; }
     if (oaFromTimes) { oaFromTimes = false; stepCalendar.hidden = false; return; }
     stepForm.hidden = false;
   });
@@ -5896,10 +5935,13 @@
       box.appendChild(b);
     });
   }
-  // The short form still needs who and where.
+  // The details-and-pay form needs who and where (the quick sheet's check, every flow since the three-screen flow; it took over the
+  // contact screen's checks).
   function quickFieldsOk() {
     var name = document.getElementById("bw-name").value.trim(), phone = document.getElementById("bw-phone").value.replace(/\D/g, ""), addr = document.getElementById("bw-address").value.trim();
-    var msg = !name ? "Please add your name." : phone.length < 10 ? "Please add a 10-digit phone number." : !addr ? "Please add the address of the home we clean." : "";
+    var email = document.getElementById("bw-email").value.trim();
+    var msg = !name ? "Please add your name." : phone.length < 10 ? "Please add a 10-digit phone number."
+      : email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email) ? "That email does not look right." : !addr ? "Please add the address of the home we clean." : "";
     if (msg) { formError.textContent = msg; formError.hidden = false; }
     return !msg;
   }
@@ -5920,7 +5962,8 @@
       var opt = Array.prototype.filter.call(sel.options, function (o) { return o.value === String(v); })[0];
       if (opt) { sel.value = opt.value; sel.dispatchEvent(new Event("change")); }
     }
-    setTimeout(function () { pick(bedroomSelect, q.get("beds")); pick(bathroomSelect, q.get("baths")); }, 400);
+    // on the first screen's selects, which keep every other bed and bath select in step (changeHomeSize)
+    setTimeout(function () { pick(svcsBed, q.get("beds")); pick(svcsBath, q.get("baths")); }, 400);
     // ?service=two_hour | checklist | four_hour preselects the service (website deep links, /llms.txt). A first visit still becomes a
     // Checklist Clean inside activateService.
     var svcKey = { two_hour: "two_hour", checklist: "works", checklist_clean: "works", works: "works", four_hour: "four_hour", detailing: "four_hour" }[String(q.get("service") || "").toLowerCase()];
@@ -6235,7 +6278,8 @@
       b.setAttribute("aria-checked", picked ? "true" : "false");
       if (picked) b.classList.add("is-picked");
       if (pin) b.classList.add("is-route");
-      if (open) b.addEventListener("click", function () { chooseTime(pickedDay, slot); });
+      // A tap on a time holds it and moves on to the details (the three-screen flow, 2026-11-04: no Continue).
+      if (open) b.addEventListener("click", function () { var d = pickedDay; chooseTime(d, slot); pickSlot(d, slot); });
       else { b.disabled = true; b.setAttribute("aria-label", slot.label + " booked"); }
       box.appendChild(b);
     });
@@ -6415,8 +6459,8 @@
     document.addEventListener("click", function (e) { if (!pop.hidden && !pop.contains(e.target) && !dateBtn.contains(e.target)) closeDatePop(); });
     document.addEventListener("keydown", function (e) { if (e.key === "Escape") closeDatePop(); });
 
-    // steps
-    document.getElementById("bw-options-go").addEventListener("click", function () { stepOptions.hidden = true; showContactStep(null); });
+    // steps (the three-screen flow, 2026-11-04: no contact screen; who and where are asked on the details-and-pay form)
+    document.getElementById("bw-options-go").addEventListener("click", function () { stepOptions.hidden = true; showTimesStep(); });
     document.getElementById("bw-contact-back").addEventListener("click", function () {
       stepContact.hidden = true;
       if (contactReturn === "form") stepForm.hidden = false; else showOptionsStep();
@@ -6438,7 +6482,7 @@
     });
     document.getElementById("bw-times-back").addEventListener("click", function () {
       stepCalendar.hidden = true;
-      if (contactDone) showContactStep(null); else showOptionsStep();
+      if (selectedService === "two_hour") showServicesStep(); else showOptionsStep();
     });
     document.getElementById("bw-times-go").addEventListener("click", function () { if (chosen) pickSlot(chosen.dateStr, chosen.slot); });
     document.getElementById("bw-contact-edit").addEventListener("click", function () { stepForm.hidden = true; showContactStep("form"); });
@@ -6453,6 +6497,17 @@
     document.getElementById("bw-zip").addEventListener("input", function () { try { renderOrder(); renderSelectedSummary(); } catch (e) { /* follows the next change */ } });
   }
   initReserve();
+  // The three-screen flow (Jack, 2026-11-04: "merge the /book-now flow into 3 screens"): the page opens on the cleans, their prices, the Two
+  // Hour Clean's plan and the home's details (the old first panel, submitted as it stands), and "Have a code?" sits on the details-and-pay
+  // form for every clean, above the order. The quick sheet (the website's time buttons) and a link with an unserved ZIP keep their own start.
+  (function () {
+    var promo = document.getElementById("bw-promo-wrap"), promoNote = document.getElementById("bw-promo-note"), order = document.getElementById("bw-order");
+    if (promo && order) { order.parentNode.insertBefore(promo, order); if (promoNote) order.parentNode.insertBefore(promoNote, order); }
+    // Who and where together at the top of the form (name, email, phone, address, ZIP), so one autofill tap fills them.
+    var addrRow = document.getElementById("bw-address").closest(".bw-field-row"), phoneField = document.getElementById("bw-phone").closest(".bw-field");
+    if (addrRow && phoneField) phoneField.parentNode.insertBefore(addrRow, phoneField.nextSibling);
+    if (!quickMode && stepOutOfArea.hidden) gateForm.dispatchEvent(new Event("submit", { cancelable: true }));
+  })();
 
   addWatchCard(document.getElementById("bw-step-gate"));
   addWatchCard(document.getElementById("bw-step-services"));
