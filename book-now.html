@@ -1769,7 +1769,7 @@
     <div id="bw-rotational-wrap" class="bw-tier-wrap" hidden>
       <label class="bw-checkbox-row">
         <input type="checkbox" id="bw-rotational">
-        <span><b>Rotate the detail work.</b> Each visit adds extra care to a different part of your home.</span>
+        <span id="bw-rotational-text"></span>
       </label>
     </div>
 
@@ -3761,7 +3761,7 @@
     if (!wrap) return;
     var on = selectedService === "works" && DETAIL_EXTRAS.length > 0;
     wrap.hidden = !on;
-    document.getElementById("bw-hc-wrap").hidden = !on; // the Home Care Plan card, under the frequency choice
+    document.getElementById("bw-hc-wrap").hidden = !on || (typeof ROTATION !== "undefined" && ROTATION.enabled); // the Home Care Plan card, under the frequency choice; replaced by the Rotating Detail Plan once that is on
     if (!on) return;
     renderHomeCare();
     if (hcOn) { var tt = document.getElementById("bw-works-extras-time"); tt.textContent = ""; tt.hidden = true; return; }
@@ -3897,11 +3897,66 @@
     updateTipUi();
     try { if (selected) renderSelectedSummary(); } catch (e) { /* the summary follows the next change */ }
   }
+  // ---------- The Checklist Clean is priced by its time (Jack, 2026-11-06) ----------
+  // Price = crew minutes for every room x 2 people x an hourly rate (one time $55, weekly $46...), never below the Two Hour Clean's price for
+  // the same frequency. The same numbers as supabase/functions/_shared/rotationPricing.ts (a test keeps them in step); the page replaces them
+  // with the owner's own from booking-availability ?flags=1. The server prices again and ignores this page's number.
+  var ROTATION = {
+    enabled: false, name: "Rotating Detail Plan",
+    rates: { one_time: 5500, weekly: 4600, every_other_week: 4800, every_4_weeks: 5100, every_6_weeks: 5100 },
+    every: { kitchen: [36, 40, 46], bathroom: [25, 28, 32], half_bath: [9, 10, 12], bedroom: [13, 14, 16], living_room: [18, 20, 23], dining_room: [9, 10, 12], entry_hall: [7, 8, 9] },
+    focus: { kitchen: [23, 25, 29], bathroom: [7, 8, 9], half_bath: [4, 4, 5], bedroom: [4, 4, 5], living_room: [7, 8, 9], dining_room: [4, 4, 5], entry_hall: [0, 0, 0] }
+  };
+  var ROT_SIZES = ["0-2 bed", "3 bed", "4+ bed"];
+  function rotApply(f) {
+    if (!f || !f.rotation) return;
+    ROTATION.enabled = !!f.rotation.enabled;
+    if (f.rotation.name) ROTATION.name = String(f.rotation.name);
+    if (f.rotation.rates) ROTATION.rates = f.rotation.rates;
+    var est = f.rotation.estimates;
+    if (est) ["every", "focus"].forEach(function (k) {
+      var src = est[k === "every" ? "every_visit_room" : "focus_room"];
+      if (src) Object.keys(ROTATION[k]).forEach(function (room) { if (src[room]) ROTATION[k][room] = ROT_SIZES.map(function (s) { return src[room][s]; }); });
+    });
+  }
+  function rotRooms(beds, baths) {
+    if (!isFinite(beds) || beds < 0 || !isFinite(baths) || baths < 1) return null;
+    var r = { kitchen: 1, living_room: 1, entry_hall: 1, bathroom: Math.floor(baths) };
+    if (beds >= 3) r.dining_room = 1;
+    if (beds > 0) r.bedroom = Math.floor(beds);
+    if (baths % 1 !== 0) r.half_bath = 1;
+    return r;
+  }
+  function rotMinutes(table, rooms, idx, only) {
+    var m = 0;
+    Object.keys(rooms).forEach(function (k) { if (!only || only.indexOf(k) >= 0) m += rooms[k] * table[k][idx]; });
+    return m;
+  }
+  function rotCents(mins, rate) { return Math.round((mins * 2 / 60) * rate / 100) * 100; }
+  function rotHome() {
+    var beds = Number(selectedBedrooms), baths = Number(selectedBathrooms), rooms = rotRooms(beds, baths);
+    return rooms ? { rooms: rooms, idx: beds <= 2 ? 0 : beds === 3 ? 1 : 2 } : null;
+  }
+  function worksBaseCents(freq) {
+    var floor = Math.max(0, CONFIG.BASE_PRICE_CENTS - frequencyDiscountCents(freq));
+    var h = rotHome(), rate = ROTATION.rates[freq];
+    if (!h || !rate) return floor;
+    return Math.max(floor, rotCents(rotMinutes(ROTATION.every, h.rooms, h.idx), rate));
+  }
+  var ROT_ZONES = [["kitchen"], ["bathroom", "half_bath"], ["bedroom"], ["living_room", "dining_room"]];
+  function rotationAddonCents(freq) {
+    var h = rotHome(), rate = ROTATION.rates[freq];
+    if (!h || !rate || freq === "one_time") return null;
+    var total = 0;
+    ROT_ZONES.forEach(function (z) { total += rotMinutes(ROTATION.focus, h.rooms, h.idx, z); });
+    return rotCents(total / 4, rate);
+  }
+
   function subtotalCents() {
     if (isCatalogService()) return catalogQuote().total;
     if (selectedService === "two_hour") return CONFIG.BASE_PRICE_CENTS + extraHalfN() * EXTRA_HALF_CENTS;
     if (selectedService === "works" && hcOn) return hcPriceCents() + glassCents();
-    if (selectedService === "works") return CONFIG.BASE_PRICE_CENTS + customCleanAddOnsCents() + worksExtrasCents() + glassCents();
+    if (selectedService === "works") return worksBaseCents("one_time") + worksExtrasCents() + glassCents();
     if (selectedService === "four_hour") return CONFIG.SERVICES.four_hour.oneTimeCents;
     return null;
   }
@@ -3916,6 +3971,7 @@
   function rawPriceForFrequency(freq) {
     if (selectedService === "works" && hcOn) return freq === "every_4_weeks" ? hcPriceCents() : null;   // the plan is every 4 weeks only
     if (selectedService === "four_hour") return CONFIG.SERVICES.four_hour.oneTimeCents;
+    if (selectedService === "works") return worksBaseCents(freq) + worksExtrasCents() + glassCents();   // priced by its time, see ROTATION
     var subtotal = subtotalCents();
     if (subtotal == null) return null;
     if (isCatalogService()) return subtotal; // catalog services carry no frequency discount
@@ -4209,6 +4265,7 @@
           ? " · turn left to save " + formatPrice(once - priceForFrequency("every_other_week")).replace(/\.00$/, "") : "");
   }
   function updatePricing() {
+    updateRotationBox();
     updateCustomBreakdown();
     renderWorksExtras();
     CONFIG.FREQUENCIES.forEach(function (f) {
@@ -4236,7 +4293,7 @@
     var isFourHour = selectedService === "four_hour";
     var isCatalog = isCatalogService();
     var isChecklist = selectedService === "checklist_clean";
-    rotationalWrap.hidden = !isChecklist;
+    updateRotationBox();
     updatePolicy();
     catalogFields.hidden = !isCatalog;
     if (isCatalog) {
@@ -4428,17 +4485,18 @@
   var rotationalWrap = document.getElementById("bw-rotational-wrap");
   var rotationalBox = document.getElementById("bw-rotational");
   var policies = {};
-  rotationalBox.addEventListener("change", function () {
-    // A rotational plan needs a recurring schedule: a one-time visit cannot rotate.
-    if (rotationalBox.checked && selectedFrequency === "one_time") {
-      selectedFrequency = "every_4_weeks";
-      freqSelect.value = "every_4_weeks";
-    }
-    updatePricing();
-  });
-  freqSelect.addEventListener("change", function () {
-    if (freqSelect.value === "one_time") rotationalBox.checked = false;
-  });
+  // The Rotating Detail Plan box (Jack, 2026-11-06): a repeat Checklist Clean only, after the 2 Catch-Up Cleans. It never changes today's price;
+  // the server prices it again and the third visit on carries it. The name is the owner's setting (booking-availability ?flags=1).
+  function updateRotationBox() {
+    if (typeof ROTATION === "undefined" || typeof rotationalWrap === "undefined" || !rotationalWrap || !rotationalBox) return;
+    var on = ROTATION.enabled && (selectedService === "works" || selectedService === "checklist_clean") && selectedFrequency !== "one_time" && !(typeof hcOn !== "undefined" && hcOn);
+    var cents = on ? rotationAddonCents(selectedFrequency) : null;
+    rotationalWrap.hidden = !(on && cents);
+    if (!on || !cents) { rotationalBox.checked = false; return; }
+    document.getElementById("bw-rotational-text").innerHTML = "After my 2 Catch-Up Cleans, add the <b>" + esc(ROTATION.name) + "</b>: one room gets extra detail every visit. <b>+" + wholeDollars(formatPrice(cents)) + " per visit.</b>";
+  }
+  rotationalBox.addEventListener("change", function () { updatePricing(); });
+  freqSelect.addEventListener("change", function () { updateRotationBox(); });
   function updatePolicy() {
     var el = document.getElementById("bw-policy");
     var p = policies[selectedService];
@@ -5509,7 +5567,8 @@
       service_label: CONFIG.SERVICES[selectedService].label,
       // For the Checklist Clean the server works out the level and add-ons from the priced choices.
       checklist_tier: "basic",
-      rotational: selectedService === "checklist_clean" && rotationalBox.checked,
+      rotational: false,   // the server decides from the third visit (migration 0952)
+      rotation_addon_wanted: (selectedService === "works" || selectedService === "checklist_clean") && rotationalBox.checked,
       photos_opt_out: CONFIG.PHOTO_OPT_OUT_LIVE ? document.getElementById("bw-photo-optout").checked : undefined,
       // Detailing: the ranked list goes first, so the team works it in the customer's order.
       special_requests: (selectedService === "four_hour" && detailPicks.length
@@ -6183,6 +6242,7 @@
     fetch(CONFIG.AVAILABILITY_URL + "?flags=1&org_slug=" + encodeURIComponent(CONFIG.ORG_SLUG)).then(function (r) { return r.json(); }).then(function (d) {
       // Pay by bank: offer "add the card fee you save to your crew's tip" (0676) only when the business has it on.
       bankFeeTipOn = !!(d && d.flags && d.flags.bank_fee_tip);
+      try { rotApply(d && d.flags); updatePricing(); } catch (e) { /* the built-in numbers stay */ }
       if (bankFeeTipOn) { try { renderOrder(); } catch (e) {} }
       if (!wrap || !d || !d.flags || !d.flags.tie_tip) return;
       wrap.hidden = false;
