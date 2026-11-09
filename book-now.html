@@ -1522,7 +1522,254 @@
     <a class="hdr-phone" href="tel:+17632279124">(763) 227-9124</a><a class="btn call" href="/twohourmaids-site/book-now">Book now</a>
     <details class="menu"><summary aria-label="Menu"><span class="ham"></span></summary><nav class="drawer" aria-label="Main (phone)"><img src="/twohourmaids-site/assets/wordmark-230.webp" alt="" width="115" height="89" loading="lazy"><a href="/twohourmaids-site/services">Services</a><a href="/twohourmaids-site/service-area">Where We Clean</a><a href="/twohourmaids-site/about-us">About</a><a href="/twohourmaids-site/faq">FAQ</a><a href="/twohourmaids-site/gift-cards">Gift Cards</a><a href="/twohourmaids-site/book-now">Book now</a><a href="tel:+17632279124">Call (763) 227-9124</a></nav></details>
   </div>
-  <div class="wrap banner-in"><h1>Book Now</h1><p class="sub"><strong>Two trained maids, two focused hours.</strong> Pick your beds and baths. See your price. Then pick a start time. Questions? Call or text <a href="tel:+17632279124" style="color:#fff">(763) 227-9124</a>.</p></div>
+  <div class="wrap banner-in"><!-- Draft #2 "Fill-in sentence" from web/drafts/booking-variations.html, placed unchanged on top of /book-now (Jack, 2026-11-09:
+     "this exact code, unchanged, front and center ... we will edit it later"). Its own draft price engine: Book shows a summary only. -->
+<div id="tw2">
+<style>
+#tw2 {
+  --navy: #0a2f51; --navy-d: #072340; --yellow: #ffed00; --ink: #0b1b33; --muted: #5b6b88; --line: #e2e8ef; --soft: #f2f6fa; --green: #15803d;
+  --head: Poppins, "Segoe UI", Arial, sans-serif; --body: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --glass: rgba(255,255,255,.14); --glass-edge: rgba(255,255,255,.35); --blur: blur(14px);
+}
+#tw2 { font-family: var(--body); color: var(--ink); text-align: left; margin: 0 auto 26px; }
+#tw2 .btn-y { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: 60px; border: 0; border-radius: 16px; background: var(--yellow); color: var(--navy); font: 800 20px var(--head); box-shadow: 0 8px 20px rgba(255,237,0,.25); transition: transform .15s ease; }
+#tw2 .btn-y:hover { transform: translateY(-1px); }
+#tw2 .price { font: 800 44px/1 var(--head); letter-spacing: -1px; }
+#tw2 .per { font-size: 14px; opacity: .8; }
+#tw2 .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(120px); background: var(--navy); color: #fff; padding: 14px 20px; border-radius: 14px; font-weight: 600; box-shadow: 0 10px 30px rgba(0,0,0,.3); transition: transform .3s ease; z-index: 50; max-width: calc(100% - 32px); }
+#tw2 .toast.on { transform: translateX(-50%) translateY(0); }
+/* 2. Sentence builder */
+#tw2 .w2 { max-width: 980px; margin: 0 auto; background: #fff; border-radius: 28px; padding: clamp(24px, 5vw, 48px); box-shadow: 0 20px 60px rgba(10,47,81,.12); }
+#tw2 .w2 p.s { font: 600 clamp(22px, 3.6vw, 36px)/1.6 var(--head); color: var(--navy); margin: 0 0 24px; }
+#tw2 .w2 .pick { position: relative; display: inline-block; }
+#tw2 .w2 .pick > button { border: 0; background: transparent; color: #1f5fd1; font: inherit; border-bottom: 3px solid var(--yellow); padding: 0 2px; }
+#tw2 .w2 .menu { position: absolute; left: 0; top: 110%; z-index: 5; background: #fff; border-radius: 16px; box-shadow: 0 16px 40px rgba(10,47,81,.2); padding: 6px; min-width: 220px; display: none; }
+#tw2 .w2 .pick.open .menu { display: block; }
+#tw2 .w2 .menu button { display: block; width: 100%; text-align: left; border: 0; background: transparent; border-radius: 10px; padding: 10px 12px; font: 600 16px var(--body); color: var(--ink); }
+#tw2 .w2 .menu button:hover, #tw2 .w2 .menu button.on { background: var(--soft); color: var(--navy); }
+#tw2 .w2 .row { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; border-top: 1px solid var(--line); padding-top: 20px; }
+#tw2 .w2 .price { color: var(--navy); }
+#tw2 .w2 .btn-y { width: auto; padding: 0 34px; }
+
+
+</style>
+<div class="w2" data-w="2">
+    <p class="s">I'd like a <span class="pick" data-pick="svc"></span> for my <span class="pick" data-pick="beds"></span>, <span class="pick" data-pick="baths"></span> home, <span class="pick" data-pick="freq"></span>, starting <span class="pick" data-pick="time"></span>.</p>
+    <div class="row"><div><div class="price" data-price></div><div class="per" data-per></div></div><button class="btn-y" data-book>Book this clean →</button></div>
+  </div>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+
+// One price engine for all ten. List prices from the site (2026-11-08); the Checklist Clean is priced by home size here as an estimate.
+var SVC = {
+  two_hour: { name: 'Two Hour Clean', short: '2 Hour', sub: 'A team of two, two hours', price: { monthly: 200, biweekly: 189, once: 222 }, best: 'For well-kept homes' },
+  checklist: { name: 'The Checklist Clean', short: 'Checklist', sub: 'Every room, every visit', base: { monthly: 205, biweekly: 195, once: 222 }, best: 'Our most complete clean' },
+  four_hour: { name: 'Four Hour Home Detailing', short: '4 Hour', sub: 'Your list, ranked', price: { monthly: 385, biweekly: 385, once: 385 }, best: 'Our highest level of clean' },
+};
+var FREQ = { biweekly: 'Every 2 weeks', monthly: 'Monthly', once: 'One time' };
+var ZIPS = /^55[0-4]\d\d$/; // the Twin Cities ZIPs we serve (draft rule)
+function priceOf(s) {
+  var v = SVC[s.svc];
+  if (v.price) return v.price[s.freq];
+  var extra = Math.max(0, s.beds - 2) * 28 + Math.max(0, s.baths - 1) * 22;
+  return v.base[s.freq] + extra;
+}
+function money(n) { return '$' + Math.round(n); }
+function nextDays() {
+  var out = [], d = new Date(); d.setDate(d.getDate() + 1);
+  while (out.length < 6) { if (d.getDay() !== 0 && d.getDay() !== 6) out.push(new Date(d)); d.setDate(d.getDate() + 1); }
+  return out;
+}
+var DAYS = nextDays();
+var TIMES = ['9:00 AM', '11:40 AM', '2:40 PM'];
+function timeLabel(s) { var d = DAYS[s.day]; return (s.day === 0 ? 'Tomorrow' : d.toLocaleDateString('en-US', { weekday: 'short' })) + ' · ' + TIMES[s.time]; }
+function homeTxt(s) { return s.beds + ' bed' + (s.beds > 1 ? 's' : '') + ', ' + s.baths + ' bath' + (s.baths > 1 ? 's' : ''); }
+function toast(msg) { var t = document.getElementById('toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(function () { t.classList.remove('on'); }, 3200); }
+function el(tag, attrs, html) { var e = document.createElement(tag); for (var k in attrs) e.setAttribute(k, attrs[k]); if (html != null) e.innerHTML = html; return e; }
+
+function Widget(root) {
+  var s = { beds: 2, baths: 1, svc: 'two_hour', freq: 'biweekly', day: 0, time: 0, zip: '' };
+  var all = function (sel) { return root.querySelectorAll(sel); };
+  function render() {
+    all('[data-step]').forEach(function (st) {
+      var k = st.getAttribute('data-step');
+      st.innerHTML = '';
+      var minus = el('button', { class: 'sb', type: 'button', 'aria-label': 'Fewer ' + k }, '−');
+      var val = el('span', { class: 'sv' }, k === 'beds' ? s.beds + ' bd' : s.baths + ' ba');
+      var plus = el('button', { class: 'sb', type: 'button', 'aria-label': 'More ' + k }, '+');
+      minus.onclick = function () { if (k === 'beds') s.beds = Math.max(1, s.beds - 1); else s.baths = Math.max(1, s.baths - 0.5); render(); };
+      plus.onclick = function () { if (k === 'beds') s.beds = Math.min(6, s.beds + 1); else s.baths = Math.min(5, s.baths + 0.5); render(); };
+      st.append(minus, val, plus);
+    });
+    all('[data-svc]').forEach(function (g) {
+      g.innerHTML = '';
+      Object.keys(SVC).forEach(function (k) {
+        var v = SVC[k]; var b = el('button', { type: 'button', class: s.svc === k ? 'on' : '' });
+        if (root.dataset.w === '9' || root.dataset.w === '10') b.textContent = v.short;
+        else if (root.dataset.w === '4') b.innerHTML = '<b>' + v.name + '</b><span>' + v.sub + '</span><em>' + money(priceOf(Object.assign({}, s, { svc: k }))) + '</em>';
+        else b.innerHTML = '<b>' + (root.dataset.w === '1' ? v.short : v.name) + '</b><span>' + v.sub + '</span>';
+        b.onclick = function () { s.svc = k; render(); };
+        g.appendChild(b);
+      });
+    });
+    all('[data-freq]').forEach(function (g) {
+      g.innerHTML = '';
+      Object.keys(FREQ).forEach(function (k) {
+        var b = el('button', { type: 'button', class: s.freq === k ? 'on' : '' }, root.dataset.w === '7' ? '<b>' + FREQ[k] + '</b><span>' + money(priceOf(Object.assign({}, s, { freq: k }))) + '</span>' : FREQ[k]);
+        b.onclick = function () { s.freq = k; render(); };
+        g.appendChild(b);
+      });
+    });
+    all('[data-times]').forEach(function (g) {
+      g.innerHTML = '';
+      TIMES.forEach(function (t, i) {
+        var d = DAYS[s.day];
+        var dayTxt = root.dataset.w === '6' ? '' : (s.day === 0 ? 'Tomorrow' : d.toLocaleDateString('en-US', { weekday: 'long' }));
+        var gone = root.dataset.w === '6' && s.day === 1 && i === 1; // one taken slot, to show how a full time looks
+        var b = el('button', { type: 'button', class: (s.time === i ? 'on' : '') + (gone ? ' gone' : '') }, (dayTxt ? '<small>' + dayTxt + '</small>' : '') + t);
+        b.onclick = function () { s.time = i; render(); };
+        g.appendChild(b);
+      });
+    });
+    all('[data-days]').forEach(function (g) {
+      g.innerHTML = '';
+      DAYS.forEach(function (d, i) {
+        var b = el('button', { type: 'button', class: s.day === i ? 'on' : '' }, '<small>' + d.toLocaleDateString('en-US', { weekday: 'short' }) + '</small><b>' + d.getDate() + '</b>');
+        b.onclick = function () { s.day = i; if (s.day === 1 && s.time === 1) s.time = 0; render(); };
+        g.appendChild(b);
+      });
+    });
+    all('[data-svcsel]').forEach(function (sel) {
+      sel.innerHTML = Object.keys(SVC).map(function (k) { return '<option value="' + k + '"' + (s.svc === k ? ' selected' : '') + '>' + SVC[k].name + '</option>'; }).join('');
+      sel.onchange = function () { s.svc = sel.value; render(); };
+    });
+    all('[data-sel]').forEach(function (sel) {
+      var k = sel.getAttribute('data-sel'); var opts = k === 'beds' ? [1, 2, 3, 4, 5, 6] : [1, 1.5, 2, 2.5, 3, 3.5, 4];
+      sel.innerHTML = opts.map(function (n) { return '<option' + ((k === 'beds' ? s.beds : s.baths) === n ? ' selected' : '') + '>' + n + '</option>'; }).join('');
+      sel.onchange = function () { s[k] = Number(sel.value); render(); };
+    });
+    all('[data-range]').forEach(function (r) {
+      var k = r.getAttribute('data-range'); r.value = s[k];
+      r.oninput = function () { s[k] = Number(r.value); paint(); };
+    });
+    paint();
+    if (root.dataset.w === '2') sentence();
+    if (root.dataset.w === '3') wizard();
+    if (root.dataset.w === '5') cards();
+  }
+  function paint() {
+    var p = priceOf(s);
+    all('[data-price]').forEach(function (e) { e.textContent = money(p); });
+    all('[data-per]').forEach(function (e) { e.textContent = s.freq === 'once' ? 'one visit' : 'per visit, ' + FREQ[s.freq].toLowerCase(); });
+    all('[data-what]').forEach(function (e) { e.textContent = SVC[s.svc].name + ' · ' + SVC[s.svc].sub; });
+    all('[data-home]').forEach(function (e) { e.textContent = homeTxt(s); });
+    all('[data-freqtxt]').forEach(function (e) { e.textContent = FREQ[s.freq]; });
+    all('[data-bedsv]').forEach(function (e) { e.textContent = s.beds; });
+    all('[data-bathsv]').forEach(function (e) { e.textContent = s.baths; });
+    all('[data-zipok]').forEach(function (e) {
+      e.className = !s.zip ? '' : ZIPS.test(s.zip) ? 'ok' : 'bad';
+      e.textContent = !s.zip ? 'Enter your ZIP to check we come to you' : ZIPS.test(s.zip) ? '✓ We clean in your area' : 'We are not in that ZIP yet';
+    });
+  }
+  all('[data-zip]').forEach(function (z) { z.oninput = function () { s.zip = z.value.replace(/\D/g, ''); z.value = s.zip; paint(); }; });
+  all('[data-book]').forEach(function (b) {
+    b.onclick = function () {
+      if (root.dataset.w === '10' && !ZIPS.test(s.zip)) { toast('Enter a Twin Cities ZIP first.'); return; }
+      toast('Draft: ' + SVC[s.svc].name + ', ' + homeTxt(s) + ', ' + FREQ[s.freq].toLowerCase() + ', ' + timeLabel(s) + ' · ' + money(priceOf(s)));
+    };
+  });
+
+  // 2. sentence picks
+  function sentence() {
+    var picks = {
+      // 'a Checklist Clean', not 'a The Checklist Clean' (Jack, 2026-11-08)
+      svc: { val: SVC[s.svc].name.replace(/^The /, ''), opts: Object.keys(SVC).map(function (k) { return [k, SVC[k].name.replace(/^The /, '')]; }), set: function (v) { s.svc = v; } },
+      beds: { val: s.beds + ' bedroom', opts: [1, 2, 3, 4, 5, 6].map(function (n) { return [n, n + ' bedroom']; }), set: function (v) { s.beds = Number(v); } },
+      baths: { val: s.baths + ' bath', opts: [1, 1.5, 2, 2.5, 3, 3.5, 4].map(function (n) { return [n, n + ' bath']; }), set: function (v) { s.baths = Number(v); } },
+      freq: { val: FREQ[s.freq].toLowerCase(), opts: Object.keys(FREQ).map(function (k) { return [k, FREQ[k].toLowerCase()]; }), set: function (v) { s.freq = v; } },
+      time: { val: timeLabel(s).replace(' · ', ' at '), opts: [0, 1, 2].map(function (i) { return [i, 'tomorrow at ' + TIMES[i]]; }).concat([1, 2].map(function (d) { return ['d' + d, DAYS[d].toLocaleDateString('en-US', { weekday: 'long' }) + ' at 9:00 AM']; })),
+        set: function (v) { if (String(v)[0] === 'd') { s.day = Number(String(v).slice(1)); s.time = 0; } else { s.day = 0; s.time = Number(v); } } },
+    };
+    root.querySelectorAll('[data-pick]').forEach(function (p) {
+      var k = p.getAttribute('data-pick'), d = picks[k];
+      p.innerHTML = '<button type="button">' + d.val + '</button><div class="menu">' + d.opts.map(function (o) { return '<button type="button" data-v="' + o[0] + '">' + o[1] + '</button>'; }).join('') + '</div>';
+      p.firstChild.onclick = function (e) { e.stopPropagation(); var was = p.classList.contains('open'); root.querySelectorAll('.pick.open').forEach(function (x) { x.classList.remove('open'); }); if (!was) p.classList.add('open'); };
+      p.querySelectorAll('.menu button').forEach(function (b) { b.onclick = function () { d.set(b.getAttribute('data-v')); render(); }; });
+    });
+  }
+  document.addEventListener('click', function () { root.querySelectorAll('.pick.open').forEach(function (x) { x.classList.remove('open'); }); });
+
+  // 3. wizard
+  var step = 0;
+  function wizard() {
+    var body = root.querySelector('[data-body]');
+    root.querySelectorAll('.bar i').forEach(function (i, n) { i.classList.toggle('on', n <= step); });
+    var titles = ['Tell us about your home', 'Pick your clean', 'How often?', 'Pick a start time'];
+    body.innerHTML = '<div class="stepno">Step ' + (step + 1) + ' of 4</div><h3>' + titles[step] + '</h3><div data-slot></div>';
+    var slot = body.querySelector('[data-slot]');
+    if (step === 0) { slot.innerHTML = '<div class="stepper" data-step="beds"></div><div class="stepper" data-step="baths"></div>'; }
+    if (step === 1) { slot.innerHTML = '<div class="seg" data-svc></div>'; }
+    if (step === 2) { slot.innerHTML = '<div class="seg" data-freq></div>'; }
+    if (step === 3) { slot.innerHTML = '<div class="times" data-times></div><div class="recap" style="margin-top:16px"><div><span>Clean</span><b>' + SVC[s.svc].name + '</b></div><div><span>Home</span><b>' + homeTxt(s) + '</b></div><div><span>How often</span><b>' + FREQ[s.freq] + '</b></div><div><span>Price</span><b data-price></b></div></div>'; }
+    // fill the new slot with the shared renderers, without looping back into wizard()
+    var saved = root.dataset.w; root.dataset.w = '3x';
+    renderInto(slot);
+    root.dataset.w = saved;
+    if (step === 2) slot.querySelectorAll('[data-freq] button').forEach(function (b, i) { var k = Object.keys(FREQ)[i]; b.innerHTML = '<b>' + FREQ[k] + '</b><span>' + money(priceOf(Object.assign({}, s, { freq: k }))) + '</span>'; });
+    root.querySelector('[data-back]').style.visibility = step ? 'visible' : 'hidden';
+    var next = root.querySelector('[data-next]');
+    next.textContent = step < 3 ? 'Next' : 'Book for ' + money(priceOf(s));
+    next.onclick = function () { if (step < 3) { step++; wizard(); } else root.querySelector('[data-next]').dispatchEvent(new CustomEvent('book')); };
+    root.querySelector('[data-back]').onclick = function () { if (step) { step--; wizard(); } };
+  }
+  function renderInto(scope) {
+    var prevAll = all; all = function (sel) { return scope.querySelectorAll(sel); };
+    var savedRender = render; render = function () { all = prevAll; render = savedRender; wizard(); };
+    try { savedRender.call(null, true); } finally { all = prevAll; render = savedRender; }
+  }
+  root.addEventListener('book', function () { toast('Draft: ' + SVC[s.svc].name + ', ' + homeTxt(s) + ', ' + FREQ[s.freq].toLowerCase() + ', ' + timeLabel(s) + ' · ' + money(priceOf(s))); }, true);
+
+  // 5. plan cards
+  function cards() {
+    var box = root.querySelector('[data-cards]'); box.innerHTML = '';
+    var feats = {
+      two_hour: ['Kitchen, 2-3 baths and floors', 'Quick tidy and dust in bedrooms', 'A photo report after every visit'],
+      checklist: ['A dedicated checklist, room by room', 'Goes through more of your home', 'Every task inspected by a second cleaner'],
+      four_hour: ['Pick the details that matter to you', 'One flat price for four hours', 'A photo report after every visit'],
+    };
+    Object.keys(SVC).forEach(function (k) {
+      var v = SVC[k], p = priceOf(Object.assign({}, s, { svc: k }));
+      var c = el('div', { class: 'card' + (k === 'checklist' ? ' best' : '') + (s.svc === k ? ' on' : '') });
+      c.innerHTML = (k === 'checklist' ? '<span class="tag">Most complete</span>' : '') + '<h4>' + v.name + '</h4><p class="sub">' + v.best + '</p><div class="price">' + money(p) + '</div><div class="per">' + (s.freq === 'once' ? 'one visit' : 'per visit, ' + FREQ[s.freq].toLowerCase()) + '</div><ul>' + feats[k].map(function (f) { return '<li>' + f + '</li>'; }).join('') + '</ul><button class="btn-y go" type="button">Choose</button>';
+      c.querySelector('button').onclick = function () { s.svc = k; render(); toast(v.name + ' picked. Now pick a start time below.'); };
+      box.appendChild(c);
+    });
+  }
+
+  // 8. chat
+  if (root.dataset.w === '8') {
+    var log = root.querySelector('[data-log]'), opts = root.querySelector('[data-opts]'), stage = 0;
+    var say = function (who, txt) { log.appendChild(el('div', { class: 'b ' + who }, txt)); log.scrollTop = log.scrollHeight; };
+    var ask = function (list) { opts.innerHTML = ''; list.forEach(function (o) { var b = el('button', { type: 'button', class: o.primary ? 'primary' : '' }, o.t); b.onclick = function () { say('me', o.t); o.go(); }; opts.appendChild(b); }); };
+    var flow = [
+      function () { say('them', 'Hi! Let us get you a price. How many bedrooms?'); ask([1, 2, 3, 4, 5].map(function (n) { return { t: n + (n === 5 ? '+' : ''), go: function () { s.beds = n; next(); } }; })); },
+      function () { say('them', 'And bathrooms?'); ask([1, 1.5, 2, 2.5, 3].map(function (n) { return { t: String(n), go: function () { s.baths = n; next(); } }; })); },
+      function () { say('them', 'Which clean sounds right?'); ask(Object.keys(SVC).map(function (k) { return { t: SVC[k].name, go: function () { s.svc = k; next(); } }; })); },
+      function () { say('them', 'How often should we come?'); ask(Object.keys(FREQ).map(function (k) { return { t: FREQ[k] + ' · ' + money(priceOf(Object.assign({}, s, { freq: k }))), go: function () { s.freq = k; next(); } }; })); },
+      function () { say('them', 'Here are the next open times:'); ask(TIMES.map(function (t, i) { return { t: 'Tomorrow ' + t, go: function () { s.day = 0; s.time = i; next(); } }; })); },
+      function () { say('them', 'Perfect: <b>' + SVC[s.svc].name + '</b> for your ' + homeTxt(s) + ' home, ' + FREQ[s.freq].toLowerCase() + ', starting ' + timeLabel(s) + '. That is <b>' + money(priceOf(s)) + '</b> a visit before tax.'); ask([{ t: 'Book it', primary: true, go: function () { say('them', 'Booked (draft). You will get a text with the details.'); toast('Draft: booked ' + money(priceOf(s))); ask([{ t: 'Start over', go: restart }]); } }, { t: 'Change something', go: restart }]); },
+    ];
+    var next = function () { stage++; setTimeout(flow[stage], 350); };
+    var restart = function () { log.innerHTML = ''; stage = 0; flow[0](); };
+    flow[0]();
+  }
+  render();
+}
+document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
+
+</script>
+</div>
+<h1>Book Now</h1><p class="sub"><strong>Two trained maids, two focused hours.</strong> Pick your beds and baths. See your price. Then pick a start time. Questions? Call or text <a href="tel:+17632279124" style="color:#fff">(763) 227-9124</a>.</p></div>
   <svg class="curve" viewBox="0 0 1200 120" preserveAspectRatio="none" aria-hidden="true"><path d="M0,0 C0,62 268,113 600,113 C932,113 1200,62 1200,0 V121 H0 Z" fill="#fff"/></svg>
 </header>
 <main id="main">
