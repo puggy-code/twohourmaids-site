@@ -27,7 +27,7 @@
     `attribution`; supabase/functions/_shared/attribution.ts). Works with every tool off; "No thanks" and GPC stop it.
 */
 (function () {
-  var META_PIXEL_ID = '';       // digits; empty = off
+  var META_PIXEL_ID = '912074998356857'; // THM Pixel 1 (Jack, 2026-11-12); empty = off
   var GA4_ID = '';              // 'G-XXXXXXXXXX'; empty = off
   var GADS_ID = '';             // 'AW-XXXXXXXXXX'; empty = off
   var GADS_PURCHASE_LABEL = ''; // the label of the "Booking" conversion in Google Ads; empty = no conversion sent
