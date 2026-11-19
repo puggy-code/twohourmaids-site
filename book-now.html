@@ -4484,6 +4484,17 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
     focus: { kitchen: [23, 25, 29], bathroom: [7, 8, 9], half_bath: [4, 4, 5], bedroom: [4, 4, 5], living_room: [7, 8, 9], dining_room: [4, 4, 5], entry_hall: [0, 0, 0] }
   };
   var ROT_SIZES = ["0-2 bed", "3 bed", "4+ bed"];
+  // The live price book (0990, Jack 2026-11-16): the server sends the same prices create-booking charges. Empty -> the CONFIG numbers stay.
+  function bookApply(p) {
+    if (!p) return;
+    var ok = function (n) { return typeof n === "number" && isFinite(n) && n >= 0; };
+    if (ok(p.base)) CONFIG.BASE_PRICE_CENTS = p.base;
+    if (ok(p.extra_half)) EXTRA_HALF_CENTS = p.extra_half;
+    if (ok(p.sponge)) ["SPONGE", "SPONGE33", "SENIOR"].forEach(function (k) { if (CONFIG.PROMO_CODES && CONFIG.PROMO_CODES[k]) CONFIG.PROMO_CODES[k].priceCents = p.sponge; });
+    if (p.discounts) CONFIG.FREQUENCIES.forEach(function (f) { if (ok(p.discounts[f.key])) f.discountCents = p.discounts[f.key]; });
+    if (ok(p.four_hour) && CONFIG.SERVICES && CONFIG.SERVICES.four_hour) CONFIG.SERVICES.four_hour.oneTimeCents = p.four_hour;
+    BEST_RECURRING = CONFIG.FREQUENCIES.reduce(function (m, x) { return x.discountCents > m ? x.discountCents : m; }, 0);
+  }
   function rotApply(f) {
     if (!f || !f.rotation) return;
     ROTATION.enabled = !!f.rotation.enabled;
@@ -6818,6 +6829,7 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
     fetch(CONFIG.AVAILABILITY_URL + "?flags=1&org_slug=" + encodeURIComponent(CONFIG.ORG_SLUG)).then(function (r) { return r.json(); }).then(function (d) {
       // Pay by bank: offer "add the card fee you save to your crew's tip" (0676) only when the business has it on.
       bankFeeTipOn = !!(d && d.flags && d.flags.bank_fee_tip);
+      try { bookApply(d && d.prices); } catch (e) { /* the built-in prices stay */ }
       try { rotApply(d && d.flags); updatePricing(); } catch (e) { /* the built-in numbers stay */ }
       if (bankFeeTipOn) { try { renderOrder(); } catch (e) {} }
       if (!wrap || !d || !d.flags || !d.flags.tie_tip) return;
@@ -7326,7 +7338,7 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
     <div><h2>Contact Info</h2><ul><li><a href="tel:+17632279124">Call (763) 227-9124</a></li><li><a href="sms:+17632279124">Text (763) 227-9124</a></li><li><a href="mailto:Owner@TwoHourMaids.com">Owner@TwoHourMaids.com</a></li></ul><h2 style="margin-top:22px">Start Times</h2><p>9:00 AM, 11:40 AM and 2:40 PM</p></div>
     <div><h2>House Cleaning In</h2><ul><li><a href="/twohourmaids-site/house-cleaning-minneapolis">Minneapolis</a></li><li><a href="/twohourmaids-site/house-cleaning-plymouth">Plymouth</a></li><li><a href="/twohourmaids-site/house-cleaning-eden-prairie">Eden Prairie</a></li><li><a href="/twohourmaids-site/house-cleaning-minnetonka">Minnetonka</a></li><li><a href="/twohourmaids-site/house-cleaning-maple-grove">Maple Grove</a></li><li><a href="/twohourmaids-site/house-cleaning-bloomington">Bloomington</a></li><li><a href="/twohourmaids-site/house-cleaning-st-paul">St Paul</a></li><li><a href="/twohourmaids-site/house-cleaning-roseville">Roseville</a></li><li><a href="/twohourmaids-site/house-cleaning-edina">Edina</a></li><li><a href="/twohourmaids-site/house-cleaning-st-louis-park">St Louis Park</a></li></ul></div>
   </div>
-  <div class="fine"><div class="wrap"><span>&copy; 2026 All Rights Reserved | <strong>Two Hour Maids</strong></span><span><a href="/twohourmaids-site/data-privacy-policy">Privacy Policy</a> &amp; <a href="/twohourmaids-site/terms-and-conditions">Terms</a> &middot; <a href="/twohourmaids-site/for-ai-assistants">For AI assistants</a></span></div></div>
+  <div class="fine"><div class="wrap"><span>&copy; 2026 All Rights Reserved | <strong>Two Hour Maids</strong></span><span><a href="/twohourmaids-site/data-privacy-policy">Privacy Policy</a> &middot; <a href="/twohourmaids-site/privacy">Forms &amp; Ads Privacy</a> &amp; <a href="/twohourmaids-site/terms-and-conditions">Terms</a> &middot; <a href="/twohourmaids-site/for-ai-assistants">For AI assistants</a></span></div></div>
 </footer>
 
 <script src="/twohourmaids-site/pixel.js" defer></script>
