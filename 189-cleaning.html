@@ -483,6 +483,15 @@
   if (cards.length < 2) return;
   w.addEventListener('mouseenter', function () { hold = true; }); w.addEventListener('mouseleave', function () { hold = false; });
   setInterval(function () { if (hold || document.hidden) return; cards[i].classList.remove('on'); dots[i].classList.remove('on'); i = (i + 1) % cards.length; cards[i].classList.add('on'); dots[i].classList.add('on'); }, 5000);
+})();
+(function () {
+  var els = document.querySelectorAll('[data-channel]');
+  if (!els.length) return;
+  fetch('https://isbhlmihbibdnajvicrj.supabase.co/functions/v1/channel-control-sync?org_slug=two-hour-maids')
+    .then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
+      var f = (d && d.flags) || {};
+      els.forEach(function (el) { var x = f[el.getAttribute('data-channel')]; el.hidden = !(x && x.on); });
+    }).catch(function () {});
 })();</script>
 <script src="/twohourmaids-site/pixel.js" defer></script>
 </body>
