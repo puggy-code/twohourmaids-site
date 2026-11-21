@@ -2883,7 +2883,7 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
     },
 
     // How many months forward a visitor may book.
-    MAX_MONTHS_AHEAD: 2, // the server closes anything past 8 weeks (booking-availability)
+    MAX_MONTHS_AHEAD: 2, // the server closes anything past 6 weeks (booking-availability, _shared/bookingWindow.ts)
 
     // Which weekdays you take appointments on (0=Sun ... 6=Sat). Example below = Mon-Fri.
     OPEN_WEEKDAYS: [1, 2, 3, 4, 5],
@@ -3323,7 +3323,7 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
   function sentTimeTxt(t) { var sl = sentSlot(t.slot); return prettyDate(t.day) + " at " + (sl ? sl.label : t.slot); }
   function loadSentTimes() {
     sentTimes = null; sentTime = null; renderSentence();
-    var t = new Date(), e = new Date(t.getTime() + 28 * 86400000);
+    var t = new Date(), e = new Date(t.getTime() + 42 * 86400000); // offer times 6 weeks ahead (walkthrough R2 24)
     var url = CONFIG.AVAILABILITY_URL + "?org_slug=" + encodeURIComponent(CONFIG.ORG_SLUG) + "&start=" + dateStr(t.getFullYear(), t.getMonth(), t.getDate()) +
       "&end=" + dateStr(e.getFullYear(), e.getMonth(), e.getDate()) + "&suggest=1&minutes=" + (currentDurationMinutes() || 0) + (selectedCity ? "&city=" + encodeURIComponent(selectedCity) : "");
     fetch(url).then(function (r) { if (!r.ok) throw new Error("bad"); return r.json(); }).then(function (d) {
@@ -5769,7 +5769,7 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
   function loadBest() {
     var box = document.getElementById("bw-best"), list = document.getElementById("bw-best-list");
     if (!box || !list) return;
-    var t = new Date(), e = new Date(t.getTime() + 28 * 86400000);
+    var t = new Date(), e = new Date(t.getTime() + 42 * 86400000);
     var url = CONFIG.AVAILABILITY_URL + "?org_slug=" + encodeURIComponent(CONFIG.ORG_SLUG) + "&start=" + dateStr(t.getFullYear(), t.getMonth(), t.getDate()) + "&end=" + dateStr(e.getFullYear(), e.getMonth(), e.getDate()) + "&suggest=1&minutes=" + (currentDurationMinutes() || 0) + (selectedCity ? "&city=" + encodeURIComponent(selectedCity) : "");
     fetch(url).then(function (r) { if (!r.ok) throw new Error("bad"); return r.json(); }).then(function (d) {
       var starts = CONFIG.SERVICES[selectedService] && CONFIG.SERVICES[selectedService].startSlots;
@@ -6410,7 +6410,7 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
         if (!r.ok || !j || j.ok === false) {
           var code = j && j.error;
           throw new Error(
-            code === "too_soon" ? "A first clean needs 48 hours' notice. Please pick a later day." : code === "same_day_closed" ? "Same-day times close 1 hour before they start. Please pick a later time or text us." : code === "holiday_closed" ? "We're closed for the holiday that day. Please pick another day." : code === "too_far" ? "We book up to 8 weeks ahead. Please pick an earlier day." :
+            code === "too_soon" ? "A first clean needs 48 hours' notice. Please pick a later day." : code === "same_day_closed" ? "Same-day times close 3 hours before they start. Please pick a later time or text us." : code === "holiday_closed" ? "We're closed for the holiday that day. Please pick another day." : code === "too_far" ? "We book up to 6 weeks ahead. Please pick an earlier day." :
             code === "slot_taken" ? "That time was just taken and your card was not charged. Please pick another time." :
             code === "time_not_workable" ? "That time does not fit our team's day for your address, and your card was not charged. Please pick another time." :
             code === "payment_not_confirmed" ? "Your payment didn't go through. Please check your card and try again." :
