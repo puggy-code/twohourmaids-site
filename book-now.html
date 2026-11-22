@@ -2442,6 +2442,27 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
       </div>
 
       
+      
+      <label class="bw-field" id="bw-source-field">
+        <span>How did you hear about us?</span>
+        <select id="bw-source" name="how_heard">
+          <option value="">Choose one</option>
+          <option value="facebook">Facebook / Instagram ad</option>
+          <option value="google">Google search</option>
+          <option value="google_maps">Google Maps</option>
+          <option value="angi">Angi</option>
+          <option value="thumbtack">Thumbtack</option>
+          <option value="nextdoor">Nextdoor</option>
+          <option value="flyer_mail">Postcard or flyer</option>
+          <option value="yard_sign">Yard sign</option>
+          <option value="friend">Friend or neighbor</option>
+          <option value="other">Other</option>
+        </select>
+      </label>
+      <label class="bw-field" id="bw-source-other-field" style="display: none">
+        <span>Where did you hear about us? (a few words, optional)</span>
+        <input type="text" id="bw-source-other" maxlength="80" autocomplete="off">
+      </label>
       <p class="bw-sms-note">We'll text you about your appointment. Reply STOP anytime.</p>
       
       <label class="bw-checkbox-row bw-rewards-optin">
@@ -4617,8 +4638,9 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
 
   // "Name three" referrals (0303). A friend's link opens this page with ?ref=<code>; kept for the visit like the QR code above.
   // create-booking checks the code and takes the friend's first-clean gift off; the page only shows it.
-  // "How did you hear about us?" (0534) is asked after booking (Jack, 2026-11-05). A Meta ad visit is never asked: it is logged as Facebook,
-  // the same rule as isMetaVisit in _shared/attribution.ts. A friend's code is logged as Friend.
+  // "How did you hear about us?" (0534): a required choice on the form from 2026-11-23 (#bw-source; it was asked after booking from
+  // 2026-11-05). A Meta ad visit is never asked: it is logged as Facebook, the same rule as isMetaVisit in _shared/attribution.ts. A friend's
+  // code is logged as Friend.
   function isMetaVisit() {
     var a = attribution();
     return [a && a.last, a && a.first].some(function (t) {
@@ -4626,6 +4648,16 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
     });
   }
   function autoHeard() { return isMetaVisit() ? "facebook" : friendCode() ? "friend" : null; }
+  // The answer sent with the booking: the automatic one, else the customer's pick (required when there is no automatic one).
+  function heardPick() { var el = document.getElementById("bw-source"); return el && el.value ? el.value : null; }
+  function heardAnswer() { return autoHeard() || heardPick(); }
+  function heardOther() { var el = document.getElementById("bw-source-other"); return heardAnswer() === "other" && el ? el.value.trim().slice(0, 80) || null : null; }
+  (function wireHeard() {
+    var field = document.getElementById("bw-source-field"), pick = document.getElementById("bw-source"), other = document.getElementById("bw-source-other-field");
+    if (!field || !pick) return;
+    if (autoHeard()) field.style.display = "none";
+    pick.addEventListener("change", function () { if (other) other.style.display = pick.value === "other" ? "" : "none"; });
+  })();
   // Kids' holiday gift (0555): one age band per child, nothing else.
   (function () {
     var sel = document.getElementById("bw-kids"), box = document.getElementById("bw-kids-box"), ages = document.getElementById("bw-kids-ages");
@@ -6178,6 +6210,14 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
       return;
     }
 
+    if (!heardAnswer()) {
+      var heardEl = document.getElementById("bw-source");
+      formError.textContent = "Please tell us how you heard about us.";
+      formError.hidden = false;
+      try { heardEl.scrollIntoView({ block: "center", behavior: "smooth" }); heardEl.focus({ preventScroll: true }); } catch (e) { /* the message says where */ }
+      return;
+    }
+
     if (selectedService === "two_hour" && twoHourAsked() > TWO_HOUR_MAX_REQUESTS) {
       formError.textContent = "The Two Hour Clean takes up to " + TWO_HOUR_MAX_REQUESTS + " special requests (one per line; your priorities count as one). Shorten the list, or choose The Checklist Clean.";
       formError.hidden = false;
@@ -6266,7 +6306,8 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
       contact_pref: (document.getElementById("bw-contact-pref") || {}).value === "call" ? "call" : "text",
       kids_gifts: kidsAnswer().gifts,
       kids: kidsAnswer().bands,
-      how_heard: autoHeard(),
+      how_heard: heardAnswer(),
+      how_heard_other: heardOther(),
       referred_by: friendCode() ? null : ((document.getElementById("bw-n3-by") || {}).value || "").trim() || null,
       price_test_id: priceTestFields().price_test_id,
       price_arm: priceTestFields().price_arm,
@@ -6467,7 +6508,7 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
   // Only for a brand-new customer (the getting-ready link carries their account token) who was not already logged as Meta or Friend.
   function askHeard(readyUrl) {
     var box = document.getElementById("bw-heard"), m = /[?&]t=([0-9a-f]{32})/.exec(readyUrl || "");
-    if (!box || !m || autoHeard()) return;
+    if (!box || !m || heardAnswer()) return; // asked on the form now (required); this stays for a booking that somehow came without it
     var otherRow = box.querySelector(".bw-heard-other");
     function save(heard, other) {
       box.querySelector(".bw-heard-chips").hidden = true; otherRow.hidden = true; box.querySelector(".bw-heard-thanks").hidden = false;
