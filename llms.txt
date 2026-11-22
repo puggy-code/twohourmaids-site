@@ -5,14 +5,14 @@
 
 ## Book
 - [Booking page](https://www.twohourmaids.com/book-now): the only place to book. Pick bedrooms and bathrooms, see the price, choose a start time. Deep link: https://www.twohourmaids.com/book-now?service=two_hour&zip=55441&date=YYYY-MM-DD&time=0900&beds=2&baths=1 (service: two_hour, checklist or four_hour; time: 0900, 1140 or 1440).
-- Call or text (763) 227-9124. Email Owner@TwoHourMaids.com.
+- Call or text (763) 230-6795. Email Owner@TwoHourMaids.com.
 
 ## Open times (read only)
 - GET https://isbhlmihbibdnajvicrj.supabase.co/functions/v1/agent-availability?zip=55441&service=two_hour&days=7 (or city=plymouth instead of zip; days 1 to 14; start=YYYY-MM-DD optional)
 - Returns { v, business, service, area: { served, community, zip }, timezone, times: [{ date, day_label, start, start_label, arrival_window, book_url }], notes }. Each book_url opens the booking page with that time picked; booking and payment happen only there. No customer data, no holds, cached 5 minutes.
 
 ## Facts and prices (approved; before taxes and fees)
-- Two Hour Maids: flat-rate house cleaning in Minneapolis-St. Paul, Minnesota. Phone and text (763) 227-9124, email Owner@TwoHourMaids.com.
+- Two Hour Maids: flat-rate house cleaning in Minneapolis-St. Paul, Minnesota. Phone and text (763) 230-6795, email Owner@TwoHourMaids.com.
 - A team of 2 cleaners at a set start time: 9:00 AM, 11:40 AM or 2:40 PM, each with a 30-minute arrival window. Same-day cleans when a team is free, up to an hour before a start time. Book up to 8 weeks ahead.
 - Two Hour Clean: 2 cleaners for 2 hours; kitchen, bathrooms, floors and general tidying, plus up to 2 special requests; no extras. $222 one time, $189 weekly, $189 every 2 weeks, $200 monthly.
 - Extra half hour on a Two Hour Clean: $40.
@@ -21,7 +21,7 @@
 - The first 2 cleans for every new customer are Catch-Up Cleans: the first details the kitchen and bathrooms, the second the bedrooms, living and dining areas. It is not likely we can get everything done in them; we get the home up to speed, and what is not reached is done free next visit. We promise excellence, not perfection.
 - The Rotating Detail Plan: an add-on for a repeat Checklist Clean that starts after the 2 Catch-Up Cleans. Every visit is the full Checklist Clean plus one Focus room given extra detail, in turn: kitchen and eating areas, bathrooms, bedrooms, living and dining areas. From $16 a visit; $26 a visit for a 3 bedroom, 2 bathroom home every 2 weeks.
 - A first visit is the Two Hour Clean or The Checklist Clean, the customer's choice; for a home that has not had a professional clean in a while we recommend The Checklist Clean. The Four Hour Home Detailing comes after the first clean.
-- Four Hour Home Detailing: $385, 9:00 AM to 1:30 PM, a full clean, a free half hour, then detailing from the customer's list.
+- Four Hour Home Detailing: $378, 9:00 AM to 1:30 PM, a full clean, a free half hour, then detailing from the customer's list.
 - Prices are before taxes and fees. The booking page shows the price before any details are given.
 - Cancel or skip more than 48 hours ahead: free. Inside 48 hours: $50, waived for a first clean, an illness once a year and loyal customers.
 - Buy six, gift one: every 6th clean earns a free clean to give a friend, automatically, forever.
