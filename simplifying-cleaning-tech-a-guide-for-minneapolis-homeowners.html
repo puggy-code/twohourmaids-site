@@ -199,12 +199,12 @@ today.</p>
       var msg = function (k) { return jf.getAttribute('data-msg-' + k) || ''; }, out = jf.querySelector('.jf-out'), btn = jf.querySelector('button');
       if (g('jf-website')) return; // the hidden field: a bot filled it
       if (g('jf-name').length < 2 || g('jf-phone').replace(/[^0-9]/g, '').length < 10) { out.textContent = msg('need'); return; }
-      if (!g('jf-role') || !g('jf-j1') || !g('jf-school') || !g('jf-auth') || !g('jf-adult') || !g('jf-lift')) { out.textContent = msg('all'); return; }
+      if (!g('jf-role') || !g('jf-j1') || !g('jf-school') || !g('jf-auth') || !g('jf-adult') || !g('jf-lift') || !g('jf-style')) { out.textContent = msg('all'); return; }
       if (g('jf-adult') !== 'yes') { out.textContent = msg('adult'); return; }
       btn.disabled = true; out.textContent = msg('sending');
       fetch(jf.getAttribute('data-endpoint'), { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({
         kind: 'applicant', org_slug: jf.getAttribute('data-org'), name: g('jf-name'), phone: g('jf-phone'), email: g('jf-email'),
-        jobs: [g('jf-j1'), g('jf-j2'), g('jf-j3')], education: g('jf-school'), authorized: g('jf-auth') === 'yes', can_lift: g('jf-lift') === 'yes',
+        jobs: [g('jf-j1'), g('jf-j2'), g('jf-j3')], education: g('jf-school'), authorized: g('jf-auth') === 'yes', can_lift: g('jf-lift') === 'yes', work_style: g('jf-style'),
         availability: g('jf-av'), how_heard: g('jf-heard'),
         role: g('jf-role'), utm: utm, lang: jf.getAttribute('data-lang'), website: g('jf-website') }) })
         .then(function (r) {
