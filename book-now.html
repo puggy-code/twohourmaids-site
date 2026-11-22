@@ -1028,6 +1028,11 @@
   @keyframes bw-hs-pulse { 0% { transform: scale(.7); opacity: .6; } 70% { transform: scale(1.35); opacity: 0; } 100% { opacity: 0; } }
   @media (prefers-reduced-motion: reduce) { #bw-root .bw-hs::after { animation: none; } }
   #bw-root .bw-wx-hint { font-size: 0.7813rem; color: var(--t-muted); margin: 8px 2px 0; min-height: 18px; }
+  #bw-root .bw-wx-featured { margin: 10px 0 4px; }
+  #bw-root .bw-wx-feat-title { font-size: 0.8125rem; font-weight: 600; color: var(--t-muted); margin: 0 2px 6px; }
+  #bw-root .bw-wx-feat-row { display: flex; flex-wrap: wrap; gap: 6px; }
+  #bw-root .bw-wx-feat { min-height: 40px; padding: 0 12px; border-radius: 999px; border: 1px solid var(--t-line); background: #fff; color: var(--t-ink); font: 500 0.875rem/1 var(--mac-font); cursor: pointer; }
+  #bw-root .bw-wx-feat.is-on { border-color: var(--t-blue); color: var(--t-blue-ink); background: var(--t-soft); }
   #bw-root .bw-wx-hintdot { display: inline-flex; width: 16px; height: 16px; border-radius: 50%; background: var(--t-blue); color: #fff; font-size: 0.6875rem; font-weight: 700; align-items: center; justify-content: center; vertical-align: -3px; }
   #bw-root .bw-wx-pop { position: relative; margin-top: 10px; background: #fff; border: 1px solid var(--t-line); border-radius: 14px; padding: 14px; box-shadow: 0 8px 24px rgba(11,26,51,.10); }
   #bw-root .bw-wx-popx { position: absolute; top: 6px; right: 8px; border: 0; background: none; font-size: 1.25rem; color: var(--t-muted); cursor: pointer; }
@@ -1340,6 +1345,9 @@
   #bw-root .bw-city-other[hidden] { display: none !important; }
   #bw-root .bw-times-note { margin: 12px 2px 0; font: 400 .8125rem/1.5 var(--mac-font); color: var(--t-muted); }
   #bw-root .bw-times-note[hidden] { display: none !important; }
+  #bw-root .bw-backup { margin-top: 12px; }
+  #bw-root .bw-backup-row { display: flex; gap: 8px; margin-top: 6px; }
+  #bw-root .bw-backup-row input, #bw-root .bw-backup-row select { flex: 1; min-height: 44px; font: inherit; border: 1px solid var(--t-line, #ccc); border-radius: 10px; padding: 0 10px; background: transparent; color: inherit; }
   #bw-root #bw-best { margin-top: 16px; }
   #bw-root .bw-best-title { font: 500 .9375rem var(--mac-font); margin: 0 0 8px; color: var(--t-ink); }
   #bw-root .bw-best-list { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -1898,7 +1906,7 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
           <div class="bw-est-grid">
             <div><small>Cleaning time</small><b id="bw-est-time">2 hr</b></div>
             <div><small>Crew</small><b id="bw-est-crew">Team of 2</b></div>
-            <div><small>Price</small><b id="bw-est-price">$222</b></div>
+            <div><small>Price</small><b id="bw-est-price">$189</b></div>
           </div>
           <p id="bw-est-why" class="bw-est-why"></p>
         </div>
@@ -2105,6 +2113,8 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
         </div>
         
         <p class="bw-note bw-wx-first">A first Checklist Clean takes up to 3 extras.</p>
+        
+        <div id="bw-wx-featured" class="bw-wx-featured" aria-label="Popular extras"></div>
         <div id="bw-wx-rooms">
           <div class="bw-wx-roomtabs">
             <button type="button" data-wxroom="kitchen" class="is-on">Kitchen</button>
@@ -2275,6 +2285,17 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
       <div id="bw-timegrid" class="bw-timegrid" role="radiogroup" aria-label="Open times"></div>
       <p id="bw-times-note" class="bw-times-note" aria-live="polite"></p>
       <div id="bw-best" hidden><div class="bw-best-title">Our best times for you</div><div id="bw-best-list" class="bw-best-list"></div></div>
+      
+      <div id="bw-backup" class="bw-backup">
+        <label class="bw-times-note" for="bw-backup-date">Backup time (optional): if we can't make that time, which works next?</label>
+        <div class="bw-backup-row">
+          <input type="date" id="bw-backup-date" aria-label="Backup day">
+          <select id="bw-backup-time" aria-label="Backup time of day">
+            <option value="">Any time that day</option><option value="08:00">Morning</option><option value="11:00">Midday</option><option value="14:00">Afternoon</option>
+          </select>
+        </div>
+        <p class="bw-times-note">We'll always ask before moving you.</p>
+      </div>
 
       <p id="bw-cal-error" class="bw-error" hidden></p>
       <div class="bw-actionbar"><button type="button" id="bw-times-go" class="bw-primary" disabled>Continue</button></div>
@@ -2444,7 +2465,7 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
       
       
       <label class="bw-field" id="bw-source-field">
-        <span>How did you hear about us?</span>
+        <span>How did you hear about us? <small>(optional)</small></span>
         <select id="bw-source" name="how_heard">
           <option value="">Choose one</option>
           <option value="facebook">Facebook / Instagram ad</option>
@@ -2767,9 +2788,6 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
     // "Add the card fee you save to your crew's tip" (0676) and the slow-day savings (0677) are switched on the server, not here
     // (organizations.bank_fee_tip_enabled / slow_day_enabled, Pricing > Booking discounts); this page asks booking-availability.
     PAY_BY_BANK: false,
-    // Repeat plans billed per visit (migration 1301, CHARGING.md). Flip together with organizations.plans_bill_per_visit: the first visit is
-    // paid now and each later visit is charged after it, instead of "before each visit" by a Stripe subscription. Wording only; the server decides.
-    PLANS_BILL_PER_VISIT: false,
     // The booking page's "No photos in my home, please" box (cus-0026): ON since 2026-11-04, when confirm-booking went live with 79e1bcb
     // (create-booking keeps the request, confirm-booking sets customers.photos_opt_out, the field the account page switches). Off: the box
     // stays hidden and the notice points to the account page.
@@ -2883,6 +2901,7 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
     // Shared base price for both the 2-Hour flat rate and Custom Clean —
     // per the SOP, the 2-Hour rate IS this base with zero add-ons.
     BASE_PRICE_CENTS: 22200, // $222
+    TWO_HOUR_ONE_TIME_OFF_CENTS: 3300, // one-time Two Hour Clean $189 (Jack 2026-11-22 #13); recurring unchanged; server: price_book discount_one_time
 
     // Frequency options + the flat-dollar discount each takes off the
     // subtotal (2-Hour subtotal = base only; Custom Clean subtotal = base + add-ons).
@@ -3119,7 +3138,7 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
     // Priced by time like the booking itself (worksBaseCents, the server's housePrice), not the retired bed/bath add-ons (2026-11-18:
     // the card said $232 for 2 bed 1 bath while the reservation and the server charged $222).
     var works = worksBaseCents("one_time", gateBedroomSelect.value, gateBathroomSelect.value);
-    document.getElementById("bw-gate-price-2h").textContent = formatPrice(CONFIG.BASE_PRICE_CENTS);
+    document.getElementById("bw-gate-price-2h").textContent = formatPrice(twoHourOneTimeCents());
     var worksEl = document.getElementById("bw-gate-price-works");
     if (LEVELS_PRICED) { worksEl.textContent = "built room by room, next"; worksEl.style.fontSize = "0.875rem"; }
     else { worksEl.textContent = formatPrice(works); worksEl.style.fontSize = ""; }
@@ -3167,7 +3186,7 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
     four_hour: { time: "4 hrs", desc: "The standard checklist first, then the detailing you choose, in the order you rank it." }
   };
   function tilePrice(key) {
-    if (key === "two_hour") return formatPrice(CONFIG.BASE_PRICE_CENTS);
+    if (key === "two_hour") return formatPrice(twoHourOneTimeCents());
     if (key === "works") return document.getElementById("bw-gate-price-works").textContent || "";
     if (key === "four_hour") return CONFIG.SERVICES.four_hour && CONFIG.SERVICES.four_hour.oneTimeCents ? formatPrice(CONFIG.SERVICES.four_hour.oneTimeCents) : "By text";
     // A priced catalog service (carpet, windows...): its minimum is the least a visit costs.
@@ -4391,7 +4410,35 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
   });
   document.getElementById("bw-glass-seal-on").addEventListener("change", function () { updatePricing(); });
 
+  // Jack #1775: the 7 featured extras, in his order. Each lists the price-list keys it may be called; the first one on the live list wins,
+  // and a featured extra missing from the list is simply not shown.
+  var FEATURED_EXTRAS = [
+    { label: "Fridge", keys: ["fridge-emptied", "fridge", "fridge-inside"] },
+    { label: "Inside cabinets", keys: ["cabinets-inside"] },
+    { label: "Interior windows, one room", keys: ["windows-room", "window-interior"] },
+    { label: "Hand-wipe blinds", keys: ["blinds-hand", "blinds-room", "blinds"] },
+    { label: "Dishwasher", keys: ["dishwasher-interior", "dishwasher-inside"] },
+    { label: "Vacuum couches", keys: ["couch-vacuum"] },
+    { label: "Glass doors", keys: ["glass-doors"] }
+  ];
+  function featuredExtras() {
+    return FEATURED_EXTRAS.map(function (f) {
+      var x = null;
+      f.keys.some(function (k) { var e = extraByKey(k); if (e && e.cents != null) { x = e; return true; } return false; });
+      return x ? { label: f.label, key: x.key } : null;
+    }).filter(Boolean);
+  }
+  function renderFeatured() {
+    var el = document.getElementById("bw-wx-featured");
+    if (!el) return;
+    var fs = featuredExtras();
+    el.innerHTML = fs.length ? "<div class='bw-wx-feat-title'>Popular</div><div class='bw-wx-feat-row'>" + fs.map(function (f) {
+      var on = wxQty(f.key) > 0;
+      return "<button type='button' class='bw-wx-feat" + (on ? " is-on" : "") + "' data-feat='" + esc(f.key) + "' aria-pressed='" + on + "'>" + (on ? "&#10003; " : "+ ") + esc(f.label) + "</button>";
+    }).join("") + "</div>" : "";
+  }
   function renderWorksExtras() {
+    renderFeatured();
     renderGlass();
     var wrap = document.getElementById("bw-works-extras");
     if (!wrap) return;
@@ -4440,6 +4487,8 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
       else setWorksExtra(k, wxQty(k) + Number(t.getAttribute("data-d")));
       return;
     }
+    var ft = e.target.closest("[data-feat]");
+    if (ft) { var fk = ft.getAttribute("data-feat"); setWorksExtra(fk, wxQty(fk) ? 0 : 1); return; }
     var v = e.target.closest("[data-wxview]");
     if (v) { wxView = v.getAttribute("data-wxview"); wxOpenKey = null; wxOpenNot = null; renderWorksExtras(); return; }
     var r = e.target.closest("[data-wxroom]");
@@ -4550,9 +4599,13 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
     var ok = function (n) { return typeof n === "number" && isFinite(n) && n >= 0; };
     if (ok(p.base)) CONFIG.BASE_PRICE_CENTS = p.base;
     if (ok(p.extra_half)) EXTRA_HALF_CENTS = p.extra_half;
+    if (ok(p.two_hour_one_time_off)) CONFIG.TWO_HOUR_ONE_TIME_OFF_CENTS = p.two_hour_one_time_off;
     if (ok(p.sponge)) ["SPONGE", "SPONGE33", "SENIOR"].forEach(function (k) { if (CONFIG.PROMO_CODES && CONFIG.PROMO_CODES[k]) CONFIG.PROMO_CODES[k].priceCents = p.sponge; });
     if (p.discounts) CONFIG.FREQUENCIES.forEach(function (f) { if (ok(p.discounts[f.key])) f.discountCents = p.discounts[f.key]; });
     if (ok(p.four_hour) && CONFIG.SERVICES && CONFIG.SERVICES.four_hour) CONFIG.SERVICES.four_hour.oneTimeCents = p.four_hour;
+    // Bedroom and bathroom add-ons from the price book (1899, Jack paper #829): one edit there changes the page and the server.
+    if (p.bedrooms) CONFIG.BEDROOM_OPTIONS.forEach(function (o) { if (ok(p.bedrooms[o.value])) o.addOnCents = p.bedrooms[o.value]; });
+    if (p.bathrooms) CONFIG.BATHROOM_OPTIONS.forEach(function (o) { if (ok(p.bathrooms[o.value])) o.addOnCents = p.bathrooms[o.value]; });
     BEST_RECURRING = CONFIG.FREQUENCIES.reduce(function (m, x) { return x.discountCents > m ? x.discountCents : m; }, 0);
   }
   function rotApply(f) {
@@ -4612,6 +4665,7 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
 
   // The recurring discount, the same for every home and both cleans ($33 weekly / every other week, $22 every 4 / 6 weeks).
   // The service and bathroom arguments are kept so a size-based discount can come back without touching the callers.
+  function twoHourOneTimeCents() { return Math.max(0, CONFIG.BASE_PRICE_CENTS - CONFIG.TWO_HOUR_ONE_TIME_OFF_CENTS); }
   function frequencyDiscountCents(freqKey) {
     var f = findByValue(CONFIG.FREQUENCIES, freqKey) || CONFIG.FREQUENCIES.filter(function (x) { return x.key === freqKey; })[0];
     return f ? f.discountCents : 0;
@@ -4624,7 +4678,8 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
     var subtotal = subtotalCents();
     if (subtotal == null) return null;
     if (isCatalogService()) return subtotal; // catalog services carry no frequency discount
-    return Math.max(0, subtotal - frequencyDiscountCents(freq));
+    var off = selectedService === "two_hour" && freq === "one_time" ? CONFIG.TWO_HOUR_ONE_TIME_OFF_CENTS : frequencyDiscountCents(freq);   // #13
+    return Math.max(0, subtotal - off);
   }
 
   // QR attribution (0217): a sign or postcard QR opens this page with ?b=<code>. Kept for the visit so the booking carries it.
@@ -4635,6 +4690,17 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
     try { return sessionStorage.getItem('bw_batch'); } catch (e) { return null; }
   }
   batchCode();
+
+  // Mac link code (1896, Jack paper #837): cold and partner emails, signs and sheets link here with ?r=<8-character code> (Puggy OS
+  // bos_lead_codes). Kept for the visit like the QR code; ingest-booking stores it on the job and tells the Mac so the right lead or partner
+  // gets the credit. The code carries no personal data.
+  function rCode() {
+    var c = null;
+    try { c = new URLSearchParams(location.search).get('r'); } catch (e) {}
+    if (c && /^[a-z2-9]{8}$/i.test(c)) { try { sessionStorage.setItem('bw_r', c.toLowerCase()); } catch (e) {} return c.toLowerCase(); }
+    try { return sessionStorage.getItem('bw_r'); } catch (e) { return null; }
+  }
+  rCode();
 
   // "Name three" referrals (0303). A friend's link opens this page with ?ref=<code>; kept for the visit like the QR code above.
   // create-booking checks the code and takes the friend's first-clean gift off; the page only shows it.
@@ -4648,7 +4714,7 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
     });
   }
   function autoHeard() { return isMetaVisit() ? "facebook" : friendCode() ? "friend" : null; }
-  // The answer sent with the booking: the automatic one, else the customer's pick (required when there is no automatic one).
+  // The answer sent with the booking: the automatic one, else the customer's pick (optional since 2026-11-22, #554).
   function heardPick() { var el = document.getElementById("bw-source"); return el && el.value ? el.value : null; }
   function heardAnswer() { return autoHeard() || heardPick(); }
   function heardOther() { var el = document.getElementById("bw-source-other"); return heardAnswer() === "other" && el ? el.value.trim().slice(0, 80) || null : null; }
@@ -5557,8 +5623,7 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
     if (eceElements && orderTotalNow > 0) { try { eceElements.update({ amount: orderTotalNow }); } catch (e) { /* the wallet keeps the last amount */ } }
     var html = rows.map(function (r) { return "<div class='bw-order-row'><span>" + r[0] + "</span><span>" + r[1] + "</span></div>"; }).join("");
     var chargedNow = recurring || paysNowNow();
-    var planWhen = CONFIG.PLANS_BILL_PER_VISIT ? "after each visit" : "before each visit";
-    var totalInfo = (recurring ? "Charged now, then " + planWhen + ". Cancel your plan anytime." : "Charged now. Our cancellation policy applies.") +
+    var totalInfo = (recurring ? "Charged now, then before each visit. Cancel your plan anytime." : "Charged now. Our cancellation policy applies.") +
       (SALES_TAX.enabled && !(tax > 0) ? "<br><span>Enter your ZIP to see taxes and fees.</span>" : "") + (tip > 0 ? "<br><span>Tips are not taxed.</span>" : "");
     html += "<div class='bw-order-row bw-order-total'><span>Total" + infoBtn("About this charge", totalInfo) + "</span><span>" + (total == null ? "—" : formatPrice(total)) + "</span></div>";
     renderPayMethod();
@@ -6210,13 +6275,7 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
       return;
     }
 
-    if (!heardAnswer()) {
-      var heardEl = document.getElementById("bw-source");
-      formError.textContent = "Please tell us how you heard about us.";
-      formError.hidden = false;
-      try { heardEl.scrollIntoView({ block: "center", behavior: "smooth" }); heardEl.focus({ preventScroll: true }); } catch (e) { /* the message says where */ }
-      return;
-    }
+    // "How did you hear about us?" is optional (Jack 2026-11-22, paper #554: "make it optional"); the done screen still asks once if it's blank.
 
     if (selectedService === "two_hour" && twoHourAsked() > TWO_HOUR_MAX_REQUESTS) {
       formError.textContent = "The Two Hour Clean takes up to " + TWO_HOUR_MAX_REQUESTS + " special requests (one per line; your priorities count as one). Shorten the list, or choose The Checklist Clean.";
@@ -6300,6 +6359,7 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
       attribution: attribution(), // first and last touch, from pixel.js (_shared/attribution.ts keeps only its known fields)
       preferred_language: (document.getElementById("bw-lang") || {}).value === "es" ? "es" : "en", // texts to this customer go out in this language (0101)
       batch_code: batchCode(),
+      r_code: rCode(), // the Mac's link code (1896); ingest-booking checks the format and passes it to the Mac
       // Name three (0303): first names only, never a friend's number. The server decides the discount.
       referral_names: n3Names().map(function (n) { return { first_name: n }; }),
       referral_code: friendCode(),
@@ -6308,6 +6368,8 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
       kids: kidsAnswer().bands,
       how_heard: heardAnswer(),
       how_heard_other: heardOther(),
+      backup_date: (document.getElementById("bw-backup-date") || {}).value || null,
+      backup_start: (document.getElementById("bw-backup-time") || {}).value || null,
       referred_by: friendCode() ? null : ((document.getElementById("bw-n3-by") || {}).value || "").trim() || null,
       price_test_id: priceTestFields().price_test_id,
       price_arm: priceTestFields().price_arm,
@@ -7042,7 +7104,7 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
     var price = card ? (card.querySelector(".bw-opt-price") || {}).textContent || "" : "";
     var per = card ? (card.querySelector(".bw-opt-per") || {}).textContent || "" : "";
     if (card && svc === "works" && selectedFrequency !== "one_time") { price = wholeDollars(formatPrice(worksBaseCents(selectedFrequency))); per = "a visit, " + String(FREQ_SHORT[selectedFrequency] || "").toLowerCase(); }
-    if (!price) price = wholeDollars(svc === "two_hour" ? formatPrice(CONFIG.BASE_PRICE_CENTS) : (LEVELS_PRICED ? "By level" : document.getElementById("bw-gate-price-works").textContent));
+    if (!price) price = wholeDollars(svc === "two_hour" ? formatPrice(twoHourOneTimeCents()) : (LEVELS_PRICED ? "By level" : document.getElementById("bw-gate-price-works").textContent));
     el.querySelector(".bw-est-tag").textContent = sentZip ? "Your clean" : "Suggested for your home";
     document.getElementById("bw-est-name").textContent = svc === "two_hour" ? "Two Hour Clean" : svc === "four_hour" ? "4-Hr Home Detailing" : "The Checklist Clean";
     // Hours only for the timed cleans: the Checklist Clean shows none (Jack, 2026-11-12).
