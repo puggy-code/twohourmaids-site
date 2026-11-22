@@ -7,7 +7,8 @@
       GA4_ID               Google Analytics 4 measurement ID ("G-...")
       GADS_ID              Google Ads tag ("AW-..."); GADS_PURCHASE_LABEL the booking conversion's label (empty = no conversion sent)
       CLARITY_ID           Microsoft Clarity project ID
-  - Consent: a small notice with "No thanks" shows once while any tool is on. "No thanks", or a Global Privacy Control signal from the
+  - Consent: no notice (MODE 'policy', Jack 2026-11-21); the privacy policy section 11 names the tools and has the off button. With MODE
+    'notice', a small notice with "No thanks" shows once while any tool is on. "No thanks", or a Global Privacy Control signal from the
     browser, stops every tool and the attribution below on this browser; the booking page shares the same choice. The Google tags run with
     Consent Mode v2: granted by default here (MODE 'notice', Jack 2026-10-21), denied after "No thanks". MODE = 'ask' loads nothing
     until the visitor taps OK (stricter; fewer numbers).
@@ -32,7 +33,8 @@
   var GADS_ID = '';             // 'AW-XXXXXXXXXX'; empty = off
   var GADS_PURCHASE_LABEL = ''; // the label of the "Booking" conversion in Google Ads; empty = no conversion sent
   var CLARITY_ID = '';          // Clarity project ID; empty = off
-  var MODE = 'notice'; // 'notice' = load and show the notice with "No thanks" (Jack, 2026-10-21); 'ask' = load only after "OK"
+  var MODE = 'policy'; // 'policy' = load with no notice; the privacy policy says so and has the off button (Jack, 2026-11-21: "No banner,
+  // policy line"). 'notice' = load and show the notice with "No thanks" (2026-10-21 to 11-21); 'ask' = load only after "OK"
   var OPT_KEY = 'thm_ads_optout', SEEN_KEY = 'thm_ads_notice', OK_KEY = 'thm_ads_ok', ATTR_KEY = 'thm_attribution';
   var ALLOWED = /^(utm_(source|medium|campaign|content|term|id)|gclid|fbclid|msclkid|org|theme|service|beds|baths)$/;
   var TOUCH = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content', 'gclid', 'fbclid', 'msclkid'];
@@ -131,6 +133,7 @@
   function compact(o) { var out = {}; for (var k in o) if (o[k] !== undefined && o[k] !== null && o[k] !== '') out[k] = o[k]; return out; }
   function num(v) { v = Number(v); return isFinite(v) && v > 0 ? Math.round(v * 100) / 100 : undefined; }
   function str(v, n) { return typeof v === 'string' && v ? v.slice(0, n || 60) : undefined; }
+  var leadSent = false;
   var META = { view_item: 'ViewContent', begin_checkout: 'InitiateCheckout', purchase: 'Purchase', click_to_call: 'Contact', click_to_text: 'Contact', generate_lead: 'Lead' };
   window.thmTrack = function (name, p) {
     if (!started || optedOut()) return;
@@ -148,7 +151,11 @@
         window.gtag('event', 'conversion', compact({ send_to: ids.ads + '/' + ids.adsLabel, value: value, currency: currency, transaction_id: txn }));
       }
       if (window.fbq) {
-        var m = name === 'zip_check' ? (p.served ? 'Lead' : null) : name === 'generate_lead' && p.served === false ? null : META[name];
+        // Lead = a booking started (Jack, 2026-11-19): the booking sentence got a served ZIP (sentence_zip; an unserved ZIP fires
+        // sentence_zip_out instead). Once per page, so going back and forth does not count twice. PageView everywhere, ViewContent on
+        // service and city pages, Purchase + Schedule on a confirmed booking.
+        var m = name === 'zip_check' ? (p.served ? 'Lead' : null) : name === 'sentence_zip' ? (leadSent ? null : 'Lead') : name === 'generate_lead' && p.served === false ? null : META[name];
+        if (m === 'Lead' && name === 'sentence_zip') leadSent = true;
         var dedupe = name === 'purchase' && txn ? { eventID: txn } : undefined;
         if (m) window.fbq('track', m, compact({ value: value, currency: currency, content_name: item || str(p.form, 40) }), dedupe);
         // A completed booking is also Meta's Schedule (an appointment booked), with the same eventID (2026-11-04, the Meta ads work).
@@ -236,7 +243,7 @@
     tapTracking();
     if (MODE === 'ask') { if (get(OK_KEY) === '1') load(); else notice(true); return; }
     load();
-    notice(false);
+    if (MODE === 'notice') notice(false);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
 })();
