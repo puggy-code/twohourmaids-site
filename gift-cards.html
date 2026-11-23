@@ -104,7 +104,7 @@
       .then(function (x) {
         if (x.ok && x.d.url) { location.href = x.d.url; return; }
         // test_mode_only: real gift-card sales wait on Jack's switch (gift_cards_live).
-        var m = x.d && x.d.error === 'test_mode_only' ? 'Gift cards open soon. Call (763) 227-9124.' : (x.d && x.d.message) || 'Something went wrong. Please try again.';
+        var m = x.d && x.d.error === 'test_mode_only' ? 'Gift cards open soon. Call (763) 230-6795.' : (x.d && x.d.message) || 'Something went wrong. Please try again.';
         status.innerHTML = '<div class="msg bad">' + m.replace(/[<>&]/g, '') + '</div>'; go.disabled = false; go.textContent = 'Continue to payment';
       })
       .catch(function () { status.innerHTML = '<div class="msg bad">Something went wrong. Please try again.</div>'; go.disabled = false; go.textContent = 'Continue to payment'; });
