@@ -2318,7 +2318,7 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
     
     <div class="bw-know" aria-label="Good to know">
       <div class="bw-know-i"><b>Photo report</b><span>After every visit: rooms done, photos, who came, and a PDF to keep.</span></div>
-      <div class="bw-know-i"><b>Arrival promise</b><span>A 30-minute arrival window. Pick 9:00, 11:40 or 2:40.</span></div>
+      <div class="bw-know-i"><b>Arrival promise</b><span>An arrival window, 20 minutes either side. Pick 9:00, 12:00 or 2:30.</span></div>
       <div class="bw-know-i"><b>Quick answers</b><span>Do I need to be home? No. Contract? Never. Supplies? We bring them.</span></div>
       <div class="bw-know-i"><b>Our promise</b><span>We promise excellence, not perfection. If something's off, tell us in your report.</span></div>
     </div>
@@ -2886,12 +2886,14 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
       ["White Bear Lake",["55110"]]
     ],
 
-    // The three daily times (Jack, 2026-10-13: "9a, 11:40a, 2:40p +/- 15 minutes"), the same as supabase/functions/_shared/slots.ts.
+    // The three daily times (Jack, 2026-11-23: 9:00, 12:00, 2:30, each +/- 20 minutes; were 9:00 / 11:40 / 2:40 +/- 15), the same as
+    // supabase/functions/_shared/slots.ts. A day the server can predict (booking-availability `arrivals`, 2010, off until switched on)
+    // shows a narrower window next to the time.
     // Availability is counted per team on the server (slot_board, migration 0274): a time is open while any team is free for it.
     SLOTS: [
-      { key: "0900", label: "9:00 AM",  appointmentType: "Morning",   window: "8:45–9:15 AM" },
-      { key: "1140", label: "11:40 AM", appointmentType: "Midday",    window: "11:25–11:55 AM" },
-      { key: "1440", label: "2:40 PM",  appointmentType: "Afternoon", window: "2:25–2:55 PM" }
+      { key: "0900", label: "9:00 AM",  appointmentType: "Morning",   window: "8:40–9:20 AM" },
+      { key: "1200", label: "12:00 PM", appointmentType: "Midday",    window: "11:40 AM–12:20 PM" },
+      { key: "1430", label: "2:30 PM",  appointmentType: "Afternoon", window: "2:10–2:50 PM" }
     ],
 
     // How long a picked time is held while the customer fills in details and pays (Jack: "a countdown timer from 10 minutes").
@@ -2900,7 +2902,7 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
     SERVICES: {
       two_hour: { label: "Two Hour Clean", durationMinutes: 120 },
       works:    { label: "The Checklist Clean",      durationMinutes: 189 }, // base clean 189 min (Jack, 2026-10-14) // priced as "Custom Clean" per the SOP
-      // Booked online like the other cleans, 9:00 start only (9:00 to 1:30, it takes the 9:00 and 11:40 times), or by text
+      // Booked online like the other cleans, 9:00 start only (9:00 to 1:30, it takes the 9:00 and 12:00 times), or by text
       // (Jack, 2026-10-18: "everything is bookable online or via text"). create-booking prices it on the server (housePrice.ts).
       four_hour: {
         label: "Four Hour Home Detailing",
@@ -3012,7 +3014,7 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
   var slowFixed = {};  // "YYYY-MM-DD|service|beds|baths" -> cents the server said
   // Reserve-style flow (2026-11-04): the city (display and the route discount), the picked day and time, the route-efficient times the server
   // marked for that city ("YYYY-MM|duration|city" -> { day: { slot: true } }), the amount it takes off, and amounts it corrected at booking.
-  var selectedCity = "", pickedDay = null, dayAuto = false, chosen = null, routeByKey = {}, routeOffCents = 0, routeFixed = {};
+  var selectedCity = "", pickedDay = null, dayAuto = false, chosen = null, routeByKey = {}, arrivalByKey = {}, routeOffCents = 0, routeFixed = {};
   // Smart times (2026-11-04, SMART-TIMES.md): the server's minutes for a home ("service|beds|baths" -> { minutes, first, smart }) and whether it
   // judges times by the clean's length and the drive (booking-availability `smart`). While it is off every number is today's.
   var homeModel = {}, smartOn = false;
@@ -5887,6 +5889,8 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
         refreshSlowQuote();
         // Route-efficient times for the picked city (the server's `route`; empty while the discount is off): a pin instead of a dot.
         routeByKey[availKey(key)] = (data && data.route) || {};
+        // Adaptive arrival windows (2010; {} while off): { day: { slot: { label } } }, only where history narrows the plain window.
+        arrivalByKey[availKey(key)] = (data && data.arrivals) || {};
         if (data && Number(data.route_off_cents) > 0) routeOffCents = Number(data.route_off_cents);
         if (data && data.smart === true) smartOn = true;
         renderGrid();
@@ -6169,7 +6173,7 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
     var slotKey = slot.key, slotLabel = slot.label;
     selected = {
       dateStr: dStr, slotKey: slotKey, slotLabel: slotLabel,
-      appointmentType: slot.appointmentType, window: slot.window
+      appointmentType: slot.appointmentType, window: slotWindow(dStr, slot)
     };
 
     track("begin_checkout", { value: bookingValue(), item: serviceName() });
@@ -6940,7 +6944,7 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
     var svcKey = { two_hour: "two_hour", checklist: "works", checklist_clean: "works", works: "works", four_hour: "four_hour", detailing: "four_hour" }[String(q.get("service") || "").toLowerCase()];
     if (svcKey) setTimeout(function () { var b = document.querySelector('.bw-svc-btn[data-service="' + svcKey + '"]'); if (b) activateService(b); }, 450);
     // ?zip=55441: a served ZIP is filled in now and checked again when the details form first shows; an unserved one (the website's ZIP
-    // check sends every ZIP here) opens the usual out-of-area screen right away. ?date=YYYY-MM-DD&time=0900|1140|1440 (book_url links
+    // check sends every ZIP here) opens the usual out-of-area screen right away. ?date=YYYY-MM-DD&time=0900|1200|1430 (an old 1140/1440 link maps to 1200/1430) (book_url links
     // from agent-availability and /llms.txt): the calendar opens on that month, and once it is on screen with that month loaded, the time
     // is picked (held 10 minutes, as a tap would) if it is still open; otherwise the normal picker shows with a note.
     var dZip = String(q.get("zip") || "").replace(/\D/g, "").slice(0, 5);
@@ -6956,6 +6960,7 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
       }
     }
     var dDate = String(q.get("date") || ""), dTime = String(q.get("time") || "").replace(":", "");
+    dTime = ({ "1140": "1200", "1440": "1430" })[dTime] || dTime; // links made before the 2026-11-23 time change
     var dSlot = /^\d{4}-\d{2}-\d{2}$/.test(dDate) ? CONFIG.SLOTS.filter(function (s) { return s.key === dTime; })[0] : null;
     var dY = Number(dDate.slice(0, 4)), dM = Number(dDate.slice(5, 7)) - 1, dDay = new Date(dY, dM, Number(dDate.slice(8, 10)));
     // A real date, today or later, in the months the calendar shows; anything else gets the normal picker.
@@ -7241,7 +7246,7 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
     if (!(mins > 0) || !slot) return "";
     function clock(m) { var h = Math.floor(m / 60) % 24, mm = m % 60, ap = h >= 12 ? "PM" : "AM"; return (h % 12 || 12) + ":" + (mm < 10 ? "0" : "") + mm + " " + ap; }
     var t = Number(slot.key.slice(0, 2)) * 60 + Number(slot.key.slice(2, 4));
-    return "About " + hm(mins) + " of cleaning, so the team is done around " + clock(t - 15 + mins) + " to " + clock(t + 15 + mins) + ".";
+    return "About " + hm(mins) + " of cleaning, so the team is done around " + clock(t - 20 + mins) + " to " + clock(t + 20 + mins) + ".";
   }
   var TWO_TIME_OVER_MIN = 150; // the same cutoff as _shared/slots.ts: past it a clean takes two back-to-back times
   function renderTimes() {
@@ -7266,6 +7271,7 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
       var rOff = open ? routeOffOn(pickedDay, slot.key) : 0;
       var pin = open && routeSlotHit(pickedDay, slot.key);
       var html = "<span class='bw-t'>" + esc(slot.label) + "</span>";
+      if (open && slotWindowAdapted(pickedDay, slot)) html += "<span class='bw-t-sub bw-t-arrive'>Arrive " + esc(slotWindow(pickedDay, slot)) + "</span>";
       if (pin) html += "<span class='bw-t-sub bw-t-route'>" + PIN_SVG + (rOff > 0 ? formatPrice(rOff).replace(/\.00$/, "") + " off" : "On our route") + "</span>";
       else if (open && slowOff > 0 && slowBadgeText(pickedDay)) html += "<span class='bw-t-sub bw-time-save'>" + esc(slowBadgeText(pickedDay)) + "</span>";
       else if (!open) html += "<span class='bw-t-sub'>Booked</span>";
@@ -7303,7 +7309,7 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
     go.disabled = !chosen;
     if (chosen && chosen.dateStr === pickedDay) {
       var ro = routeOffOn(chosen.dateStr, chosen.slot.key);
-      note.textContent = prettyDate(chosen.dateStr) + " at " + chosen.slot.label + ". Arrive " + chosen.slot.window + ". " + finishText(chosen.slot) + (ro > 0 ? " This time saves " + formatPrice(ro).replace(/\.00$/, "") + ": a team is already working near you." : "");
+      note.textContent = prettyDate(chosen.dateStr) + " at " + chosen.slot.label + ". Arrive " + slotWindow(chosen.dateStr, chosen.slot) + ". " + finishText(chosen.slot) + (ro > 0 ? " This time saves " + formatPrice(ro).replace(/\.00$/, "") + ": a team is already working near you." : "");
     } else if (slowOff > 0) {
       note.textContent = "Slow day: " + formatPrice(slowOff) + " off this clean (one-time bookings; one discount per booking).";
     } else {
@@ -7312,6 +7318,13 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
   }
 
   // ---- the route-efficiency discount (display only; create-booking decides again from the ZIP and refuses with route_changed) ----
+  // The arrival window for a time on a day: the server's adapted one when it has history (`arrivals`), else the plain +/- 20.
+  function slotWindow(dStr, slot) {
+    var m = arrivalByKey[availKey(String(dStr || "").slice(0, 7))];
+    var a = m && m[dStr] && m[dStr][slot.key];
+    return a && a.label ? String(a.label) : slot.window;
+  }
+  function slotWindowAdapted(dStr, slot) { return slotWindow(dStr, slot) !== slot.window; }
   function routeSlotHit(dStr, slotKey) {
     var m = routeByKey[availKey(dStr.slice(0, 7))];
     return !!(m && m[dStr] && m[dStr][slotKey] === true);
