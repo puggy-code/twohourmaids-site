@@ -1947,6 +1947,8 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
           <option value="dirty">Really dirty</option>
         </select>
       </label>
+      
+      <p id="bw-cond-steer" class="bw-menu-small" hidden>For a home that's really dirty or very large, we start with Four Hour Home Detailing. After that visit we set your regular time and price.</p>
     </div>
     
     <button type="button" id="bw-help-pick" class="bw-help-pick">Want help finding the right option?</button>
@@ -7510,6 +7512,15 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
 })();
 </script>
 
+<script>
+  // Steer note for a really dirty home (Jack 2026-11-23): shown under the condition question, wording only; nothing is changed in the booking.
+  (function () {
+    var c = document.getElementById("bw-gate-condition"), n = document.getElementById("bw-cond-steer");
+    if (!c || !n) return;
+    var paint = function () { n.hidden = c.value !== "dirty"; };
+    c.addEventListener("change", paint); paint();
+  })();
+</script>
 
 </div></section>
 <section class="sec soft"><div class="wrap">
