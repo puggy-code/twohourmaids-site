@@ -5636,6 +5636,7 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
     if (eceElements && orderTotalNow > 0) { try { eceElements.update({ amount: orderTotalNow }); } catch (e) { /* the wallet keeps the last amount */ } }
     var html = rows.map(function (r) { return "<div class='bw-order-row'><span>" + r[0] + "</span><span>" + r[1] + "</span></div>"; }).join("");
     var chargedNow = recurring || paysNowNow();
+    var planWhen = "before each visit";   // the per-visit wording switch was removed (#1293); the consent line below still uses this
     var totalInfo = (recurring ? "Charged now, then before each visit. Cancel your plan anytime." : "Charged now. Our cancellation policy applies.") +
       (SALES_TAX.enabled && !(tax > 0) ? "<br><span>Enter your ZIP to see taxes and fees.</span>" : "") + (tip > 0 ? "<br><span>Tips are not taxed.</span>" : "");
     html += "<div class='bw-order-row bw-order-total'><span>Total" + infoBtn("About this charge", totalInfo) + "</span><span>" + (total == null ? "—" : formatPrice(total)) + "</span></div>";
