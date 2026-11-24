@@ -1874,6 +1874,7 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
 </header>
 <main id="main">
 <section class="sec"><div class="wrap">
+
 <div id="bw-root" class="bw-root">
 
   
@@ -2194,10 +2195,10 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
         Pick a 9:00 morning below and book now, or text us to plan it together.
       </p>
       <div id="bw-detailing-info" class="bw-detailing-info" hidden>
-        <p><b>9:00 AM to 1:30 PM.</b> Two back-to-back two-hour sessions with a free half hour in between.</p>
+        <p><b>Starts at 9:00 AM.</b> Two sessions back to back, with a free break in between.</p>
         <p><b>Session 1:</b> a full standard clean, including 2&frac12; to 3 bathrooms.</p>
-        <p><b>Session 2:</b> detailing. Pick items, like the fridge, cabinets, windows, blinds or grout. Each takes about 15 to 45 minutes. Or choose <b>Chef&rsquo;s Choice</b>, and our team details what your home needs most.</p>
-        <p class="bw-note">We do not offer a deep clean. We also do not wash walls or ceilings, clean up mold or biohazards, or move heavy furniture.</p>
+        <p><b>Session 2:</b> detailing. Pick items, like the fridge, cabinets, windows, blinds or grout. Or choose <b>Chef&rsquo;s Choice</b>, and our team details what your home needs most.</p>
+        <p class="bw-note">We do not wash walls or ceilings, clean up mold or biohazards, or move heavy furniture.</p>
       </div>
       
       <div id="bw-planner" class="bw-planner" hidden>
@@ -3198,7 +3199,7 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
     two_hour: { time: "2 hrs \u00b7 team of 2", desc: "A team of two, two hours, one flat rate. Built for a well-kept, average-size home." },
     works: { time: "Untimed \u00b7 every room", desc: "Our standard checklist, completed in every room of your home. We stay until the whole home is done." },
     checklist_clean: { time: "Untimed \u00b7 every room", desc: "Our standard checklist in every room, at the level you choose, plus any extras you pick." },
-    four_hour: { time: "4 hrs", desc: "The standard checklist first, then the detailing you choose, in the order you rank it." }
+    four_hour: { time: "", desc: "The standard checklist first, then the detailing you choose, in the order you rank it." }
   };
   function tilePrice(key) {
     if (key === "two_hour") return formatPrice(twoHourOneTimeCents());
@@ -3443,7 +3444,7 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
       return;
     }
     var cond = document.getElementById("bw-gate-condition");
-    var condTxt = { kept: "that's kept up", "while": "that needs a catch-up", dirty: "that needs a deep catch-up" };
+    var condTxt = { kept: "that's kept up", "while": "that needs a catch-up", dirty: "that needs a big catch-up" };
     var timeOpts = (sentTimes || []).map(function (t, i) { return [String(i), sentTimeTxt(t)]; });
     var picks = {
       svc: [sentSvc, SENT_SVCS.map(function (x) { return [x[0], x[1]]; }), function (v) { sentSvc = v; }],
@@ -3965,7 +3966,7 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
     var b = document.querySelector('.bw-service-toggle [data-service="four_hour"]');
     if (b) b.click();
     var note = document.getElementById("bw-fv-switched");
-    note.textContent = "That is more than four hours of work, so it is now a Four Hour Home Detailing (" + formatPrice(CONFIG.SERVICES.four_hour.oneTimeCents) +
+    note.textContent = "That is more than one visit holds, so it is now a Four Hour Home Detailing (" + formatPrice(CONFIG.SERVICES.four_hour.oneTimeCents) +
       "): your standard checklist first, then your extras in the order you added them.";
     note.hidden = false;
     if (note.scrollIntoView) note.scrollIntoView({ block: "nearest" });
@@ -4167,10 +4168,10 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
     var units = wxPending.order.reduce(function (n, k) { return n + (wxPending.map[k] || 0); }, 0);
     var firstLimit = firstVisitOnly() && units > WX_FIRST_VISIT_MAX && wxClock(personMin) <= DETAILING_SWITCH_MIN;
     el.innerHTML = (firstLimit ? "<div class='bw-wx-overh'>" + esc(WX_FIRST_VISIT_NOTE) + "</div>"
-        : "<div class='bw-wx-overh'>That is about " + hm(wxClock(personMin)) + " of work: more than one visit holds (4 hours).</div>") +
+        : "<div class='bw-wx-overh'>That is about " + hm(wxClock(personMin)) + " of work: more than one visit holds.</div>") +
       (firstVisitOnly() ? "" :
         "<button type='button' class='bw-wx-choice' data-wxover='detail'><b>Make it a Four Hour Home Detailing</b>" +
-        "<span>" + formatPrice(fh.oneTimeCents).replace(/\.00$/, "") + " " + esc(fh.taxNote) + " · 9:00 to 1:30 · your standard clean, then these extras in order</span></button>") +
+        "<span>" + formatPrice(fh.oneTimeCents).replace(/\.00$/, "") + " " + esc(fh.taxNote) + " · starts at 9:00 · your standard clean, then these extras in order</span></button>") +
       "<button type='button' class='bw-wx-choice' data-wxover='spread'><b>" + (firstVisitOnly() ? "Save the rest for my next visits" : "Spread them over my next visits") + "</b>" +
       "<span>" + (firstVisitOnly() ? "Three on this clean, " : "What fits goes on this clean, ") + "the rest on your next " + (selectedFrequency === "one_time" ? "cleans (every 4 weeks)" : "cleans") +
       ", keeping each near " + formatPrice(WX_VISIT_TARGET_CENTS).replace(/\.00$/, "") + ". Charged with each visit.</span></button>" +
@@ -5189,7 +5190,7 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
     }).join("");
     document.getElementById("bw-planner-list").innerHTML = listHtml;
     document.getElementById("bw-planner-summary").textContent = !detailPicks.length
-      ? "Your standard checklist comes first; your list fills the rest of the four hours."
+      ? "Your standard checklist comes first; your list fills the rest of the visit."
       : expected === detailPicks.length ? "We expect to finish all " + detailPicks.length + "."
       : "We expect to finish your top " + expected + " of " + detailPicks.length + ". The rest we start if there is time.";
     var picked = {};
@@ -5355,7 +5356,7 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
       // Past two and a half hours this is really a Four Hour Detailing, and we say so.
       if (q.minutes > 150 && !firstVisitOnly()) {
         hint.hidden = false;
-        hint.innerHTML = "That is a lot for one visit. A <b>Four Hour Detailing</b> (9:00 AM to 1:30 PM, two back-to-back sessions with a free half hour) fits this better. <a href=\"#\" id=\"bw-switch-detailing\">See the Four Hour Detailing</a>";
+        hint.innerHTML = "That is a lot for one visit. A <b>Four Hour Detailing</b> (starts at 9:00 AM, two sessions back to back with a free break) fits this better. <a href=\"#\" id=\"bw-switch-detailing\">See the Four Hour Detailing</a>";
         document.getElementById("bw-switch-detailing").addEventListener("click", function (e) {
           e.preventDefault();
           var b = document.querySelector('[data-service="four_hour"]');
@@ -7126,10 +7127,10 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
     if (!price) price = wholeDollars(svc === "two_hour" ? formatPrice(twoHourOneTimeCents()) : (LEVELS_PRICED ? "By level" : document.getElementById("bw-gate-price-works").textContent));
     el.querySelector(".bw-est-tag").textContent = sentZip ? "Your clean" : "Suggested for your home";
     document.getElementById("bw-est-name").textContent = svc === "two_hour" ? "Two Hour Clean" : svc === "four_hour" ? "4-Hr Home Detailing" : "The Checklist Clean";
-    // Hours only for the timed cleans: the Checklist Clean shows none (Jack, 2026-11-12).
+    // Hours only for the Two Hour Clean: the Checklist Clean (Jack, 2026-11-12) and the detailing (M083) show none.
     var timeEl = document.getElementById("bw-est-time");
-    timeEl.textContent = svc === "two_hour" ? "2 hr" : svc === "four_hour" ? "4 hr" : "";
-    timeEl.parentNode.style.display = svc === "works" ? "none" : "";
+    timeEl.textContent = svc === "two_hour" ? "2 hr" : "";
+    timeEl.parentNode.style.display = svc === "two_hour" ? "" : "none";
     document.getElementById("bw-est-crew").textContent = "Team of 2";
     document.getElementById("bw-est-price").textContent = price;
     var perShort = /one-time/.test(per) ? "one time" : per.replace(/^a visit, /, "");

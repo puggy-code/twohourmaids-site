@@ -205,13 +205,19 @@
   // ---------- the notice ----------
   function notice(always) {
     if (!always && get(SEEN_KEY) === '1') return;
-    var lift = document.body && document.body.classList.contains('has-mbar') && window.innerWidth < 800 ? 76 : 12; // above the phone bar
+    // On a phone the notice takes the sticky Book/Call/Text bar's place until it is answered, instead of stacking on top of it and
+    // covering about a quarter of the screen (M112). The bar comes back on "OK" or "No thanks".
+    var mbar = document.body && document.body.classList.contains('has-mbar') && window.innerWidth < 800 ? document.querySelector('.mbar') : null;
+    if (mbar) mbar.style.display = 'none';
+    var done = function () { bar.remove(); if (mbar) mbar.style.display = ''; };
+    var lift = mbar ? 'calc(8px + env(safe-area-inset-bottom))' : '12px';
+    var small = window.innerWidth < 480;
     var bar = document.createElement('div');
     bar.setAttribute('role', 'region');
     bar.setAttribute('aria-label', 'Measurement notice');
-    bar.style.cssText = 'position:fixed;left:12px;right:12px;bottom:' + lift + 'px;z-index:2147483000;max-width:560px;margin:0 auto;padding:12px 14px;' +
+    bar.style.cssText = 'position:fixed;left:12px;right:12px;bottom:' + lift + ';z-index:2147483000;max-width:560px;margin:0 auto;padding:' + (small ? '10px 12px' : '12px 14px') + ';' +
       'background:#fff;color:#15121f;border:1px solid #d9dde6;border-radius:14px;box-shadow:0 6px 24px rgba(0,0,0,.12);' +
-      'font:14px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;display:flex;flex-wrap:wrap;gap:8px;align-items:center';
+      'font:' + (small ? '13px/1.4' : '14px/1.45') + ' -apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;display:flex;flex-wrap:wrap;gap:8px;align-items:center';
     var text = document.createElement('span');
     text.style.cssText = 'flex:1 1 260px';
     text.textContent = 'We use Google, Meta and Microsoft tools to see which of our ads work and how this site is used. No names, phone numbers or emails are sent.';
@@ -221,9 +227,9 @@
     var ok = document.createElement('button');
     ok.type = 'button'; ok.textContent = 'OK';
     ok.style.cssText = 'padding:7px 14px;border-radius:999px;border:0;background:#0a47a8;color:#fff;font:inherit;font-weight:700;cursor:pointer';
-    no.onclick = function () { window.thmPixel.optOut(); bar.remove(); };
+    no.onclick = function () { window.thmPixel.optOut(); done(); };
     ok.onclick = function () {
-      set(SEEN_KEY, '1'); set(OK_KEY, '1'); bar.remove();
+      set(SEEN_KEY, '1'); set(OK_KEY, '1'); done();
       if (MODE === 'ask') { load(); try { if (window.gtag) window.gtag('consent', 'update', { ad_storage: 'granted', analytics_storage: 'granted', ad_user_data: 'granted', ad_personalization: 'granted' }); } catch (e) { /* ignore */ } }
     };
     bar.appendChild(text); bar.appendChild(no); bar.appendChild(ok);
