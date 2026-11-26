@@ -1601,7 +1601,7 @@ function nextDays() {
   return out;
 }
 var DAYS = nextDays();
-var TIMES = ['9:00 AM', '11:40 AM', '2:40 PM'];
+var TIMES = ['9:00 AM', '12:00 PM', '2:30 PM'];
 function timeLabel(s) { var d = DAYS[s.day]; return (s.day === 0 ? 'Tomorrow' : d.toLocaleDateString('en-US', { weekday: 'short' })) + ' · ' + TIMES[s.time]; }
 function homeTxt(s) { return s.beds + ' bed' + (s.beds > 1 ? 's' : '') + ', ' + s.baths + ' bath' + (s.baths > 1 ? 's' : ''); }
 function toast(msg) { var t = document.getElementById('toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(toast.t); toast.t = setTimeout(function () { t.classList.remove('on'); }, 3200); }
@@ -1887,6 +1887,7 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
       <div class="bw-bar bw-bar-plain">
         <div class="bw-bar-title">
           <h3 class="bw-gate-title">Book Now</h3>
+          <p class="bw-menu-small" style="margin:2px 0 0">Monday to Friday · From $189</p>
           <p class="bw-gate-sub">Two Hour Maids &middot; House cleaning</p>
         </div>
       </div>
