@@ -7249,7 +7249,7 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
     var t = Number(slot.key.slice(0, 2)) * 60 + Number(slot.key.slice(2, 4));
     return "About " + hm(mins) + " of cleaning, so the team is done around " + clock(t - 20 + mins) + " to " + clock(t + 20 + mins) + ".";
   }
-  var TWO_TIME_OVER_MIN = 150; // the same cutoff as _shared/slots.ts: past it a clean takes two back-to-back times
+  var TWO_TIME_OVER_MIN = 130; // the same cutoff as _shared/slots.ts: past it a clean takes two back-to-back times
   function renderTimes() {
     var box = document.getElementById("bw-timegrid"), note = document.getElementById("bw-times-note"), go = document.getElementById("bw-times-go");
     var hint = document.getElementById("bw-city-hint");
