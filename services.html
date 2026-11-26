@@ -203,7 +203,7 @@
         a.href = book + '?service=two_hour&date=' + encodeURIComponent(p.get('date') || t.date) + '&time=' + encodeURIComponent(p.get('time') || '') + '&quick=1' + (knownZip() ? '&zip=' + knownZip() : '');
         var day = when(t.date, d.timezone).replace(/,$/, ''), dayEl = document.createElement('span'), timeEl = document.createElement('b');
         dayEl.textContent = day.charAt(0).toUpperCase() + day.slice(1); timeEl.textContent = t.start_label;
-        a.appendChild(dayEl); a.appendChild(timeEl); // "Tomorrow" over "11:40 AM": three fit in one row on a phone
+        a.appendChild(dayEl); a.appendChild(timeEl); // "Tomorrow" over "12:00 PM": three fit in one row on a phone
         row.appendChild(a);
       });
     }).catch(function () { /* nothing shows */ });
