@@ -1352,6 +1352,9 @@
   #bw-root #bw-best { margin-top: 16px; }
   #bw-root .bw-best-title { font: 500 .9375rem var(--mac-font); margin: 0 0 8px; color: var(--t-ink); }
   #bw-root .bw-best-list { display: flex; flex-wrap: wrap; gap: 8px; }
+  #bw-root .bw-callme { margin-top: 14px; display: grid; gap: 8px; }
+  #bw-root #bw-callme-form { display: grid; gap: 8px; }
+  #bw-root #bw-callme-form input { font: inherit; padding: 10px 12px; border: 1px solid var(--t-line); border-radius: 4px; min-width: 0; }
   #bw-root .bw-best-list .bw-navbtn { border: 1px solid var(--t-line); border-radius: 4px; color: var(--t-blue); font: 500 .875rem var(--mac-font); }
 
   /* your reservation */
@@ -2290,6 +2293,18 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
       <div id="bw-timegrid" class="bw-timegrid" role="radiogroup" aria-label="Open times"></div>
       <p id="bw-times-note" class="bw-times-note" aria-live="polite"></p>
       <div id="bw-best" hidden><div class="bw-best-title">Our best times for you</div><div id="bw-best-list" class="bw-best-list"></div></div>
+      
+      <div id="bw-callme" class="bw-callme" hidden>
+        <button type="button" id="bw-callme-open" class="bw-navbtn" style="width:auto;padding:8px 12px">Rather talk to a person? Call me instead</button>
+        <div id="bw-callme-form" hidden>
+          <input type="text" id="bw-callme-name" autocomplete="given-name" placeholder="First name" aria-label="First name" maxlength="80">
+          <input type="tel" id="bw-callme-phone" autocomplete="tel" inputmode="tel" placeholder="Phone number" aria-label="Phone number" maxlength="20">
+          <input type="text" id="bw-callme-need" placeholder="What can we help with? (optional)" aria-label="What can we help with" maxlength="300">
+          <p class="bw-fine">By tapping Call me, you agree Two Hour Maids may call you at this number about your cleaning.</p>
+          <button type="button" id="bw-callme-send" class="bw-primary bw-primary-auto">Call me</button>
+        </div>
+        <p id="bw-callme-note" class="bw-fine" aria-live="polite"></p>
+      </div>
       
       <div id="bw-backup" class="bw-backup">
         <label class="bw-times-note" for="bw-backup-date">Backup time (optional): if we can't make that time, which works next?</label>
@@ -3405,6 +3420,15 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
   }
   function sentSlot(key) { return CONFIG.SLOTS.filter(function (x) { return x.key === key; })[0]; }
   function sentTimeTxt(t) { var sl = sentSlot(t.slot); return prettyDate(t.day) + " at " + (sl ? sl.label : t.slot); }
+  // Area-aware times (2330, off): when the server ranks the times for the city (d.offer), those come first, in its order; the rest of the
+  // suggested times follow. Off, the server sends no offer and this is d.suggested exactly as before.
+  function rankedSuggested(d) {
+    var sug = (d && d.suggested) || [];
+    if (!d || !Array.isArray(d.offer) || !d.offer.length) return sug;
+    var first = d.offer.map(function (x) { return { day: x.date, slot: x.slot, nearby: !!x.nearby }; });
+    var seen = {}; first.forEach(function (x) { seen[x.day + "|" + x.slot] = 1; });
+    return first.concat(sug.filter(function (x) { return !seen[x.day + "|" + x.slot]; }));
+  }
   function loadSentTimes() {
     sentTimes = null; sentTime = null; renderSentence();
     var t = new Date(), e = new Date(t.getTime() + 42 * 86400000); // offer times 6 weeks ahead (walkthrough R2 24)
@@ -3412,7 +3436,7 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
       "&end=" + dateStr(e.getFullYear(), e.getMonth(), e.getDate()) + "&suggest=1&minutes=" + (currentDurationMinutes() || 0) + (selectedCity ? "&city=" + encodeURIComponent(selectedCity) : "");
     fetch(url).then(function (r) { if (!r.ok) throw new Error("bad"); return r.json(); }).then(function (d) {
       var starts = CONFIG.SERVICES[selectedService] && CONFIG.SERVICES[selectedService].startSlots;
-      sentTimes = ((d && d.suggested) || []).filter(function (x) { return sentSlot(x.slot) && (!starts || starts.indexOf(x.slot) >= 0); }).slice(0, 5);
+      sentTimes = rankedSuggested(d).filter(function (x) { return sentSlot(x.slot) && (!starts || starts.indexOf(x.slot) >= 0); }).slice(0, 5);
       sentTime = sentTimes[0] || null;
       renderSentence();
     }).catch(function () { sentTimes = []; renderSentence(); });
@@ -5919,7 +5943,7 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
     var url = CONFIG.AVAILABILITY_URL + "?org_slug=" + encodeURIComponent(CONFIG.ORG_SLUG) + "&start=" + dateStr(t.getFullYear(), t.getMonth(), t.getDate()) + "&end=" + dateStr(e.getFullYear(), e.getMonth(), e.getDate()) + "&suggest=1&minutes=" + (currentDurationMinutes() || 0) + (selectedCity ? "&city=" + encodeURIComponent(selectedCity) : "");
     fetch(url).then(function (r) { if (!r.ok) throw new Error("bad"); return r.json(); }).then(function (d) {
       var starts = CONFIG.SERVICES[selectedService] && CONFIG.SERVICES[selectedService].startSlots;
-      var sug = ((d && d.suggested) || []).filter(function (x) { return !starts || starts.indexOf(x.slot) >= 0; });
+      var sug = rankedSuggested(d).filter(function (x) { return !starts || starts.indexOf(x.slot) >= 0; });
       list.innerHTML = "";
       sug.forEach(function (x) {
         var slot = CONFIG.SLOTS.filter(function (s) { return s.key === x.slot; })[0];
@@ -6805,6 +6829,25 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
   // ---------- measurement ----------
   // pixel.js (loaded after this page) runs every tool, the notice and "No thanks"; until it loads, or with every ID empty, these do nothing.
   function track(name, params) { try { if (window.thmTrack) window.thmTrack(name, params); } catch (e) { /* never break booking */ } }
+  // "Call me instead" (ask #11): opens the short form; sends name, phone, the page's city and what they need. The server says what to promise.
+  (function () {
+    var open = document.getElementById("bw-callme-open"), form = document.getElementById("bw-callme-form"), send = document.getElementById("bw-callme-send"), note = document.getElementById("bw-callme-note");
+    if (!open || !form || !send) return;
+    open.addEventListener("click", function () { form.hidden = false; open.hidden = true; track("call_me_open"); var n = document.getElementById("bw-callme-name"); if (n) n.focus(); });
+    send.addEventListener("click", function () {
+      var phone = (document.getElementById("bw-callme-phone").value || "").replace(/\D/g, "");
+      if (phone.length === 11 && phone.charAt(0) === "1") phone = phone.slice(1);
+      if (phone.length !== 10) { note.textContent = "Please enter a 10-digit phone number."; return; }
+      send.disabled = true; note.textContent = "Sending…";
+      fetch(CONFIG.AVAILABILITY_URL, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({
+        action: "call_me", org_slug: CONFIG.ORG_SLUG, phone: phone, name: document.getElementById("bw-callme-name").value || "",
+        need: document.getElementById("bw-callme-need").value || "", city: (typeof selectedCity === "string" && selectedCity) || "" }) })
+        .then(function (r) { return r.json(); }).then(function (d) {
+          if (d && d.ok) { form.hidden = true; note.textContent = "Thanks! " + (d.say || "Someone will call you back shortly."); track("call_me_sent"); }
+          else { send.disabled = false; note.textContent = d && d.error === "bad_phone" ? "Please check the phone number and your city." : "Sorry, that did not go through. Please call us at " + CONFIG.BUSINESS_PHONE + "."; }
+        }).catch(function () { send.disabled = false; note.textContent = "Sorry, that did not go through. Please call us at " + CONFIG.BUSINESS_PHONE + "."; });
+    });
+  })();
   function attribution() { try { return (window.thmAttribution && window.thmAttribution()) || null; } catch (e) { return null; } }
   function serviceName() { var s = CONFIG.SERVICES[selectedService]; return (s && (s.name || s.label)) || selectedService; }
   function bookingValue() { return Math.round(Number(priceForFrequency(selectedFrequency) || 0)) / 100; }
@@ -7006,6 +7049,7 @@ document.querySelectorAll('#tw2 [data-w]').forEach(function (r) { Widget(r); });
     fetch(CONFIG.AVAILABILITY_URL + "?flags=1&org_slug=" + encodeURIComponent(CONFIG.ORG_SLUG)).then(function (r) { return r.json(); }).then(function (d) {
       // Pay by bank: offer "add the card fee you save to your crew's tip" (0676) only when the business has it on.
       bankFeeTipOn = !!(d && d.flags && d.flags.bank_fee_tip);
+      try { if (d && d.flags && d.flags.call_me) document.getElementById("bw-callme").hidden = false; } catch (e) { /* the button stays hidden */ }
       try { bookApply(d && d.prices); } catch (e) { /* the built-in prices stay */ }
       try {
         rotApply(d && d.flags); updatePricing();
